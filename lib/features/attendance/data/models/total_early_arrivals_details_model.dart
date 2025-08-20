@@ -41,16 +41,16 @@ class EarlyArrivalDataModel extends EarlyArrivalDataEntity {
   factory EarlyArrivalDataModel.fromJson(Map<String, dynamic> json) {
     return EarlyArrivalDataModel(
       employeeName: json['employee_name'] as String?,
-      totalEarlyArrivals: json['total_early_arrivals'] as int?,
-      totalEarlyMinutes: json['total_early_minutes'] as int?,
+      totalEarlyArrivals: (json['total_early_arrivals'] as num?)?.toInt(),
+      totalEarlyMinutes: (json['total_early_minutes'] as num?)?.toInt(),
       averageEarlyMinutes: (json['average_early_minutes'] as num?)?.toDouble(),
       totalEarlyHours: (json['total_early_hours'] as num?)?.toDouble(),
-      recordsUpdated: json['records_updated'] as int?,
-      earlyArrivalPercentage: json['early_arrival_percentage'] as int?,
+      recordsUpdated: (json['records_updated'] as num?)?.toInt(),
+      earlyArrivalPercentage: (json['early_arrival_percentage'] as num?)?.toInt(),
       earlyArrivalsDetails:
-          (json['early_arrivals_details'] as List?)
-              ?.map((e) => EarlyArrivalDetailModel.fromJson(e))
-              .toList() ??
+      (json['early_arrivals_details'] as List?)
+          ?.map((e) => EarlyArrivalDetailModel.fromJson(e))
+          .toList() ??
           [],
     );
   }
@@ -86,7 +86,7 @@ class EarlyArrivalDetailModel extends EarlyArrivalDetailEntity {
       date: json['date'] as String?,
       empName: json['emp_name'] as String?,
       checkinTime: json['checkin_time'] as String?,
-      minutesEarly: json['minutes_early'] as int?,
+      minutesEarly: (json['minutes_early'] as num?)?.toInt(),
       hoursMinutesEarly: json['hours_minutes_early'] as String?,
       currentStatus: json['current_status'] as String?,
     );

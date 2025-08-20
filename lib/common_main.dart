@@ -51,6 +51,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'features/management/presentation/provider/emp_audit_form_provider.dart';
 import 'features/payslip/presentation/Provider/payroll_overview_provider.dart';
 
 void commonMain() async {
@@ -245,6 +246,10 @@ class MyApp extends StatelessWidget {
         // Payroll Overview Provider
         ChangeNotifierProvider(
           create: (context) => getIt<PayrollOverviewProvider>(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (context) => getIt<EmpAuditFormProvider>(),
         ),
 
 

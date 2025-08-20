@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fuoday/commons/widgets/k_vertical_spacer.dart';
+import 'package:fuoday/features/hr/domain/entities/hr_overview_entity.dart';
 import 'package:fuoday/features/hr/presentation/widgets/hr_open_positions_card.dart';
+import 'package:provider/provider.dart';
+import '../provider/hr_overview_provider.dart';
 
-class HRViewOpenPositions extends StatelessWidget {
-  const HRViewOpenPositions({super.key});
+class HRViewOpenPositionsWidget extends StatelessWidget {
+  const HRViewOpenPositionsWidget({super.key, required HROverviewEntity hrOverview});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    final positions = context.watch<HROverviewProvider>().hrOverview!.openPositions;
 
-      scrollDirection: Axis.vertical,
+    return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      itemCount: 12,
-      separatorBuilder: (context, index) {
-        return KVerticalSpacer(height: 12.h);
-      },
+      shrinkWrap: true,
+      itemCount: positions.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
+        final p = positions[index];
         return HROpenPositionsCard(
-          openPositonJobDesignation: 'Flutter Developer',
+          openPositonJobDesignation: p.title,
           openPositionJobDescription:
-              "We are seeking for the mobile app developer experience should be atleast 2 year",
+          "Posted at: ${p.postedAt}, Openings: ${p.noOfOpenings}",
         );
       },
     );

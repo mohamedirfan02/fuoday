@@ -140,31 +140,34 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
                 builder: (context) {
                   return KDownloadOptionsBottomSheet(
                     onPdfTap: () async {
-                      // Pdf service
                       final pdfService = getIt<PdfGeneratorService>();
 
-                      // Generating
+                      // 👇 explicitly pass local table data & columns
                       final pdfFile = await pdfService.generateAndSavePdf(
-                        data: data,
+                        data: List<Map<String, String>>.from(data), // force copy
+                        columns: List<String>.from(columns),        // force copy
                         title: 'Total Attendance Report',
+                        filename: 'total_attendance_report.pdf',    // 👈 give unique filename
                       );
 
-                      // Open a PDF File
                       await OpenFilex.open(pdfFile.path);
                     },
+
                     onExcelTap: () async {
                       // Excel Service
                       final excelService = getIt<ExcelGeneratorService>();
 
-                      // Implement Excel logic
+                      // 👇 explicitly pass local table data & columns
                       final excelFile = await excelService.generateAndSaveExcel(
-                        data: data,
-                        filename: 'Total Attendance Report.xlsx',
+                        data: List<Map<String, String>>.from(data), // force copy
+                        columns: List<String>.from(columns),        // pass headers
+                        filename: 'total_attendance_report.xlsx',   // 👈 unique filename
                       );
 
-                      // Open a Excel File
+                      // Open Excel File
                       await OpenFilex.open(excelFile.path);
                     },
+
                   );
                 },
               );

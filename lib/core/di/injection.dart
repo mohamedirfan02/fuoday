@@ -74,6 +74,11 @@ import 'package:fuoday/features/home/domain/usecases/get_organizational_program_
 import 'package:fuoday/features/home/domain/usecases/home_addtask_usecase.dart';
 import 'package:fuoday/features/home/presentation/provider/all_events_provider.dart';
 import 'package:fuoday/features/home/presentation/provider/check_in_provider.dart';
+import 'package:fuoday/features/hr/data/datasources/hr_overview_remote_datasource.dart';
+import 'package:fuoday/features/hr/data/repository/hr_overview_repository_impl.dart';
+import 'package:fuoday/features/hr/domain/repository/hr_overview_repository.dart';
+import 'package:fuoday/features/hr/domain/usecase/get_hr_overview.dart';
+import 'package:fuoday/features/hr/presentation/provider/hr_overview_provider.dart';
 import 'package:fuoday/features/leave_tracker/data/datasources/leave_remote_data_source.dart';
 import 'package:fuoday/features/leave_tracker/data/datasources/leave_tracker_chart_remote_data_source.dart';
 import 'package:fuoday/features/leave_tracker/data/repository/leave_repository_impl.dart';
@@ -82,6 +87,11 @@ import 'package:fuoday/features/leave_tracker/domain/repository/leave_repository
 import 'package:fuoday/features/leave_tracker/domain/repository/leave_tracker_chart_repository.dart';
 import 'package:fuoday/features/leave_tracker/domain/usecase/get_leave_summary_usecase.dart';
 import 'package:fuoday/features/leave_tracker/domain/usecase/get_leave_tracker_chart_usecase.dart';
+import 'package:fuoday/features/management/data/datasources/emp_audit_form_datasource.dart';
+import 'package:fuoday/features/management/data/repository/emp_audit_form_repository_impl.dart';
+import 'package:fuoday/features/management/domain/repository/emp_audit_form_repository.dart';
+import 'package:fuoday/features/management/domain/usecase/get_employees_by_managers_usecase.dart';
+import 'package:fuoday/features/management/presentation/provider/emp_audit_form_provider.dart';
 import 'package:fuoday/features/organizations/data/datasources/remote/departmentListRemoteDataSource.dart';
 import 'package:fuoday/features/organizations/data/datasources/remote/organization_about_datasource.dart';
 import 'package:fuoday/features/organizations/data/datasources/remote/ser_ind_datasource.dart';
@@ -938,7 +948,49 @@ void setUpServiceLocator() {
         () => PayrollOverviewProvider(getPayrollOverviewUseCase: getIt()),
   );
 
+// hr screen
+
+// Data source
+  getIt.registerLazySingleton<HROverviewRemoteDataSource>(
+        () => HROverviewRemoteDataSourceImpl(dioService: getIt<DioService>()),
+  );
+
+//  Repository
+  getIt.registerLazySingleton<HROverviewRepository>(
+        () => HROverviewRepositoryImpl(remoteDataSource: getIt<HROverviewRemoteDataSource>()),
+  );
+
+//  Use case
+  getIt.registerLazySingleton<GetHROverview>(
+        () => GetHROverview(getIt<HROverviewRepository>()),
+  );
+
+//  Provider
+  getIt.registerFactory<HROverviewProvider>(
+        () => HROverviewProvider(getHROverviewUseCase: getIt<GetHROverview>()),
+  );
 
 
+  // Data sources
+  // In your DI setup
+  getIt.registerLazySingleton<EmpAuditFormDataSource>(
+        () => EmpAuditFormDataSourceImpl(
+      dioService: getIt<DioService>(), // Uses your existing DioService
+    ),
+  );
 
+  // Repositories
+  getIt.registerLazySingleton<EmpAuditFormRepository>(
+        () => EmpAuditFormRepositoryImpl(getIt()),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(
+        () => GetEmployeesByManagersUseCase(getIt()),
+  );
+
+  // Providers
+  getIt.registerFactory(
+        () => EmpAuditFormProvider(getIt()),
+  );
 }

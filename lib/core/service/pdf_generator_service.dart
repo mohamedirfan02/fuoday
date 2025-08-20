@@ -5,9 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:fuoday/core/helper/app_logger_helper.dart';
 
 class PdfGeneratorService {
-  // Generate And Save PDF
   Future<File> generateAndSavePdf({
     required List<Map<String, String>> data,
+    required List<String> columns, // 👈 add this
     String? title,
     String filename = 'attendance_report.pdf',
   }) async {
@@ -33,9 +33,12 @@ class PdfGeneratorService {
                     ),
                   ),
                 pw.SizedBox(height: 12),
+
+                // ✅ Fix: Use columns to order row values
                 pw.Table.fromTextArray(
-                  headers: data.isNotEmpty ? data.first.keys.toList() : [],
-                  data: data.map((row) => row.values.toList()).toList(),
+                  headers: columns,
+                  data: data.map((row) =>
+                      columns.map((col) => row[col] ?? "-").toList()).toList(),
                   cellStyle: pw.TextStyle(fontSize: 10),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                   border: pw.TableBorder.all(),
@@ -58,3 +61,4 @@ class PdfGeneratorService {
     }
   }
 }
+

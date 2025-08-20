@@ -13,139 +13,134 @@ import 'package:fuoday/features/hr/presentation/screens/hr_view_open_positions.d
 import 'package:fuoday/features/hr/presentation/screens/hr_view_recent_employees.dart';
 import 'package:go_router/go_router.dart';
 
-class HRScreen extends StatefulWidget {
+import 'hr_add_events.dart';
+import 'package:provider/provider.dart';
+import '../provider/hr_overview_provider.dart';
+
+class HRScreen extends StatelessWidget {
   const HRScreen({super.key});
 
   @override
-  State<HRScreen> createState() => _HRScreenState();
-}
-
-class _HRScreenState extends State<HRScreen> {
-  @override
   Widget build(BuildContext context) {
-    // Get employee details from Hive with error handling
     final hiveService = getIt<HiveStorageService>();
     final employeeDetails = hiveService.employeeDetails;
 
-    // Safe extraction of employee details
     final name = employeeDetails?['name'] ?? "No Name";
     final profilePhoto = employeeDetails?['profilePhoto'] ?? "";
     final empId = employeeDetails?['empId'] ?? "No Employee ID";
     final designation = employeeDetails?['designation'] ?? "No Designation";
     final email = employeeDetails?['email'] ?? "No Email";
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: KAppBar(
-          title: "HR Dashboard",
-          centerTitle: true,
-          leadingIcon: Icons.arrow_back,
-          onLeadingIconPress: () {
-            GoRouter.of(context).pop();
-          },
-        ),
-        body: Container(
-          margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Profile Image
-              KCircularCachedImage(imageUrl: profilePhoto, size: 80.h),
+    return ChangeNotifierProvider(
+      create: (_) {
+        final provider = getIt<HROverviewProvider>();
+        final webUserId = int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '0') ?? 0;
+        provider.fetchHROverview(webUserId);
+        return provider;
+      },
+      child: DefaultTabController(
+        length: 4, // Number of tabs
+        child: Scaffold(
+          appBar: KAppBar(
+            title: "HR Dashboard",
+            centerTitle: true,
+            leadingIcon: Icons.arrow_back,
+            onLeadingIconPress: () {
+              GoRouter.of(context).pop();
+            },
+          ),
+          body: Consumer<HROverviewProvider>(
+            builder: (context, provider, _) {
+              if (provider.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (provider.error != null) {
+                return Center(child: Text('Error: ${provider.error}'));
+              } else if (provider.hrOverview == null) {
+                return const Center(child: Text('No data found.'));
+              }
 
-              KVerticalSpacer(height: 24.h),
-
-              // person Card
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    width: 1.w,
-                    color: AppColors.greyColor.withOpacity(0.3),
-                  ),
-                  borderRadius: BorderRadius.circular(8.r),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: AppColors.cardGradientColor,
-                  ),
-                ),
+              return Container(
+                margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // name
-                    KText(
-                      text: name,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14.sp,
-                      color: AppColors.titleColor,
+                    KCircularCachedImage(imageUrl: profilePhoto, size: 80.h),
+                    KVerticalSpacer(height: 24.h),
+                    // Profile Card
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(width: 1.w, color: AppColors.greyColor.withOpacity(0.3)),
+                        borderRadius: BorderRadius.circular(8.r),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: AppColors.cardGradientColor,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          KText(
+                            text: name,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.sp,
+                            color: AppColors.titleColor,
+                          ),
+                          KVerticalSpacer(height: 3.h),
+                          KText(
+                            text: "Designation: $designation",
+                            fontWeight: FontWeight.w500,
+                            fontSize: 10.sp,
+                            color: AppColors.titleColor,
+                          ),
+                          KVerticalSpacer(height: 3.h),
+                          KText(
+                            text: "Employee id: $empId",
+                            fontWeight: FontWeight.w500,
+                            fontSize: 10.sp,
+                            color: AppColors.titleColor,
+                          ),
+                          KVerticalSpacer(height: 3.h),
+                          KText(
+                            text: email,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 10.sp,
+                            color: AppColors.titleColor,
+                          ),
+                        ],
+                      ),
                     ),
-                    KVerticalSpacer(height: 3.h),
-                    KText(
-                      text: "Designation: $designation",
-                      fontWeight: FontWeight.w500,
-                      fontSize: 10.sp,
-                      color: AppColors.titleColor,
+                    KVerticalSpacer(height: 30.h),
+                    KTabBar(
+                      tabs: const [
+                        Tab(text: "Overview"),
+                        Tab(text: "Recent Employees"),
+                        Tab(text: "Open Positions"),
+                        Tab(text: "Add Events"),
+                      ],
                     ),
-                    KVerticalSpacer(height: 3.h),
-                    KText(
-                      text: "Employee id: $empId",
-                      fontWeight: FontWeight.w500,
-                      fontSize: 10.sp,
-                      color: AppColors.titleColor,
+                    KVerticalSpacer(height: 20.h),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          HROverviewWidget(hrOverview: provider.hrOverview!),
+                          HRViewRecentEmployeesWidget(hrOverview: provider.hrOverview!),
+                          HRViewOpenPositionsWidget(hrOverview: provider.hrOverview!),
+                          const HrAddEvents(),
+                        ],
+                      ),
                     ),
-
-                    KVerticalSpacer(height: 3.h),
-
-                    KText(
-                      text: email,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 10.sp,
-                      color: AppColors.titleColor,
-                    ),
-
                   ],
                 ),
-              ),
-
-              KVerticalSpacer(height: 30.h),
-
-              KTabBar(
-                tabs: [
-                  // OverView
-                  Tab(text: "Overview"),
-
-                  // Recent Employees
-                  Tab(text: "Recent Employees"),
-
-                  // Open Positions
-                  Tab(text: "Open Positions"),
-                ],
-              ),
-
-              KVerticalSpacer(height: 20.h),
-
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    // Overview
-                    HROverview(),
-
-                    // Recent Employees
-                    HRViewRecentEmployees(),
-
-                    // Open Positions
-                    HRViewOpenPositions(),
-                  ],
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
     );
+
   }
 }
+

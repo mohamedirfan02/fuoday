@@ -21,30 +21,32 @@ class TotalEarlyArrivalsDetailsProvider extends ChangeNotifier {
   // ✅ Add this
   EarlyArrivalsEntity? get data => _earlyArrivalsDetails;
 
-  Future<void> fetchTotalEarlyArrivalsDetails(int userId) async {
+  Future<void> fetchTotalEarlyArrivalsDetails(int webUserId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final EarlyArrivalsEntity result =
-      await getTotalEarlyArrivalsUseCase.call(userId);
+      await getTotalEarlyArrivalsUseCase.call(webUserId);
 
       _earlyArrivalsDetails = result;
       _isLoading = false;
 
       AppLoggerHelper.logInfo(
-        '✅ Early arrivals fetched successfully for userId: $userId',
+        '✅ Early arrivals fetched successfully for userId: $webUserId',
       );
-    } catch (e) {
+    } catch (e, stack) {
       _earlyArrivalsDetails = null;
       _isLoading = false;
-      _errorMessage = "Failed to fetch early arrivals data.";
+      _errorMessage = "Failed to fetch early arrivals data: $e";
 
       AppLoggerHelper.logError(
-        '❌ Error fetching early arrivals for userId $userId',
+        '❌ Error fetching early arrivals for userId $webUserId: $e',
       );
+      AppLoggerHelper.logError(stack.toString()); // optional, for full trace
     }
+
 
     notifyListeners();
   }

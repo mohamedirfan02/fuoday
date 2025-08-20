@@ -24,7 +24,6 @@ class KDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final employeeDetails = HiveStorageService().employeeDetails ?? {};
     final designation = (employeeDetails['designation'] ?? '').toString();
 
@@ -48,9 +47,7 @@ class KDrawer extends StatelessWidget {
               fontSize: 12.sp,
             ),
             currentAccountPicture: KCircularCachedImage(
-              imageUrl:
-                  profileImageUrl ??
-                  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1288&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+              imageUrl: profileImageUrl ?? "",
               size: 200.h,
             ),
           ),
@@ -119,7 +116,8 @@ class KDrawer extends StatelessWidget {
                 ),
 
                 // HR menu — visible only if designation is "hr"
-                if (designation.toLowerCase() == 'hr')                  KDrawerListTile(
+                if (designation.toLowerCase() == 'hr')
+                  KDrawerListTile(
                     drawerTitle: "HR",
                     drawerListTileOnTap: () {
                       Navigator.pop(context);
@@ -130,16 +128,16 @@ class KDrawer extends StatelessWidget {
 
                 // Management
                 if (designation.trim().toLowerCase() == 'assistant manager')
-                KDrawerListTile(
-                  drawerTitle: "Management",
-                  drawerListTileOnTap: () {
-                    Navigator.pop(context); // Close drawer
-                    GoRouter.of(
-                      context,
-                    ).pushNamed(AppRouteConstants.management);
-                  },
-                  drawerLeadingIcon: Icons.manage_accounts_rounded,
-                ),
+                  KDrawerListTile(
+                    drawerTitle: "Management",
+                    drawerListTileOnTap: () {
+                      Navigator.pop(context); // Close drawer
+                      GoRouter.of(
+                        context,
+                      ).pushNamed(AppRouteConstants.management);
+                    },
+                    drawerLeadingIcon: Icons.manage_accounts_rounded,
+                  ),
 
                 // Pay Slip
                 KDrawerListTile(

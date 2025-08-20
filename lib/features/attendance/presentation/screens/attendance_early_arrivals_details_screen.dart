@@ -68,7 +68,7 @@ class _AttendanceEarlyArrivalsDetailsScreenState
   Widget build(BuildContext context) {
     // Providers
     final provider = context.totalEarlyArrivalsDetailsProviderWatch;
-    final details = provider.data;
+    final details = provider.earlyArrivalsDetails;
 
     // Your card data list
     final List<Map<String, String>> punctualData = [
@@ -203,8 +203,10 @@ class _AttendanceEarlyArrivalsDetailsScreenState
                         // Generating
                         final pdfFile = await pdfService.generateAndSavePdf(
                           data: data,
+                          columns: columns, // 👈 pass the fixed column order
                           title: 'Total Attendance Report',
                         );
+
 
                         // Open a PDF File
                         await OpenFilex.open(pdfFile.path);
@@ -221,7 +223,7 @@ class _AttendanceEarlyArrivalsDetailsScreenState
                         final excelFile = await excelService
                             .generateAndSaveExcel(
                               data: data,
-                              filename: 'Total Attendance Report.xlsx',
+                              filename: 'Total Attendance Report.xlsx', columns: [],
                             );
 
                         // Open a Excel File
@@ -327,7 +329,7 @@ class _AttendanceEarlyArrivalsDetailsScreenState
                 const Center(child: Text("No Data Found"))
               else
                 SizedBox(
-                  height: 200.h,
+                  height: MediaQuery.of(context).size.height * 0.5, // take half of screen
                   child: KDataTable(columnTitles: columns, rowData: data),
                 ),
 

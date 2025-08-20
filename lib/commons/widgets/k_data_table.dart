@@ -3,7 +3,7 @@ import 'package:data_table_2/data_table_2.dart';
 
 class KDataTable extends StatelessWidget {
   final List<String> columnTitles;
-  final List<Map<String, String>> rowData;
+  final List<Map<String, dynamic>> rowData; // allow String OR Widget
 
   const KDataTable({
     super.key,
@@ -21,18 +21,23 @@ class KDataTable extends StatelessWidget {
       columns: columnTitles
           .map(
             (title) => DataColumn(
-              label: Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          )
+          label: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      )
           .toList(),
       rows: rowData.map((row) {
         return DataRow(
-          cells: columnTitles
-              .map((col) => DataCell(Text(row[col] ?? '-')))
-              .toList(),
+          cells: columnTitles.map((col) {
+            final cellValue = row[col];
+            if (cellValue is Widget) {
+              return DataCell(cellValue);
+            } else {
+              return DataCell(Text(cellValue?.toString() ?? '-'));
+            }
+          }).toList(),
         );
       }).toList(),
     );

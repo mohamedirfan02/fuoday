@@ -183,29 +183,26 @@ class _AttendanceAbsentDaysDetailsScreenState
                 builder: (context) {
                   return KDownloadOptionsBottomSheet(
                     onPdfTap: () async {
-                      // Pdf service
                       final pdfService = getIt<PdfGeneratorService>();
 
-                      // Generating
                       final pdfFile = await pdfService.generateAndSavePdf(
-                        data: data,
-                        title: 'Total Attendance Report',
+                        data: List<Map<String, String>>.from(data),   // ensure fresh copy
+                        columns: List<String>.from(columnTitles),     // 👈 pass column headers
+                        title: 'Absent Days Report',                  // unique title
+                        filename: 'absent_days_report.pdf',           // unique file name
                       );
 
-                      // Open a PDF File
                       await OpenFilex.open(pdfFile.path);
                     },
                     onExcelTap: () async {
-                      // Excel Service
                       final excelService = getIt<ExcelGeneratorService>();
 
-                      // Implement Excel logic
                       final excelFile = await excelService.generateAndSaveExcel(
-                        data: data,
-                        filename: 'Total Attendance Report.xlsx',
+                        data: List<Map<String, String>>.from(data),   // ensure fresh copy
+                        columns: List<String>.from(columnTitles),     // 👈 pass column headers
+                        filename: 'absent_days_report.xlsx',          // unique file name
                       );
 
-                      // Open a Excel File
                       await OpenFilex.open(excelFile.path);
                     },
                   );

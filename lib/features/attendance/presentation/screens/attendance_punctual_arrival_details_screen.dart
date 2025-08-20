@@ -8,11 +8,13 @@ import 'package:fuoday/core/di/injection.dart';
 import 'package:fuoday/core/extensions/provider_extension.dart';
 import 'package:fuoday/core/service/hive_storage_service.dart';
 import 'package:fuoday/core/themes/app_colors.dart';
+import 'package:fuoday/features/attendance/presentation/providers/total_punctual_arrivals_details_provider.dart';
 import 'package:fuoday/features/attendance/presentation/widgets/attendance_message_content.dart';
 import 'package:fuoday/features/attendance/presentation/widgets/attendance_punctual_arrival_card.dart';
 import 'package:fuoday/features/auth/presentation/widgets/k_auth_filled_btn.dart';
 import 'package:fuoday/features/auth/presentation/widgets/k_auth_text_form_field.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class AttendancePunctualArrivalDetailsScreen extends StatefulWidget {
   const AttendancePunctualArrivalDetailsScreen({super.key});
@@ -62,7 +64,8 @@ class _AttendancePunctualArrivalDetailsScreenState
   @override
   Widget build(BuildContext context) {
     // Providers
-    final provider = context.totalPunctualArrivalDetailsProviderWatch;
+    final provider = Provider.of<TotalPunctualArrivalDetailsProvider>(context);
+    print('Punctual records: ${provider.details?.data?.punctualArrivalsDetails?.length}');
 
     // Your card data list
     final List<Map<String, String>> punctualData = [
@@ -240,40 +243,54 @@ class _AttendancePunctualArrivalDetailsScreenState
 
               KVerticalSpacer(height: 40.h),
 
-              Align(
-                alignment: Alignment.center,
-                child: Column(
-                  spacing: 10.h,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // No Punctual Arrivals
-                    KText(
-                      textAlign: TextAlign.center,
-                      text: "No Punctual Arrivals",
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14.sp,
-                      color: AppColors.titleColor,
-                    ),
+              KVerticalSpacer(height: 40.h),
 
-                    KText(
-                      textAlign: TextAlign.center,
-                      text:
-                          "No punctual arrivals found for your account. Keep arriving on time!",
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12.sp,
-                      color: AppColors.greyColor,
-                    ),
-
-                    // Message Content
-                    AttendanceMessageContent(
-                      messageContentTitle: "Performance: High",
-                      messageContentSubTitle:
-                          "You arrive mostly on time, consider arriving a few minutes early to be better prepared",
-                    ),
-                  ],
+              if ((provider.details?.data?.punctualArrivalsDetails?.isNotEmpty ?? false))
+              // ✅ Show list of punctual arrivals
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: provider.details!.data!.punctualArrivalsDetails!.length,
+                  itemBuilder: (context, index) {
+                    final detail = provider.details!.data!.punctualArrivalsDetails![index];
+                    return Card(
+                      child: ListTile(
+                        title: Text(detail.empName ?? "-"),
+                        subtitle: Text("Date: ${detail.date} | Check-in: ${detail.checkinTime}"),
+                        trailing: Text(detail.currentStatus ?? ""),
+                      ),
+                    );
+                  },
+                )
+              else
+              // ❌ Show "No Data" message
+                Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    spacing: 10.h,
+                    children: [
+                      KText(
+                        text: "No Punctual Arrivals",
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.sp,
+                        color: AppColors.titleColor,
+                      ),
+                      KText(
+                        text: "No punctual arrivals found for your account. Keep arriving on time!",
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12.sp,
+                        color: AppColors.greyColor,
+                        textAlign: TextAlign.center,
+                      ),
+                      AttendanceMessageContent(
+                        messageContentTitle: "Performance: High",
+                        messageContentSubTitle:
+                        "You arrive mostly on time, consider arriving a few minutes early to be better prepared",
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+
             ],
           ),
         ),

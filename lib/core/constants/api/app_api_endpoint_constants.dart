@@ -142,4 +142,16 @@ class AppApiEndpointConstants {
 
   //get PayRoll OverView Details
   static String getPayrollOverView(int webUserId) => '$baseUrl/hrms/payroll/getoverview/$webUserId';
+
+  // download payslip
+  static String downloadPayslip(int webUserId) => '$baseUrl/hrms/payroll/downloadpayslip/$webUserId';
+
+  //HrOverview screen
+  static String getHrOverview(int webUserId) => '$baseUrl/hrms/hr/gethr/$webUserId';
+
+  //Create and update events
+  static String addEvents = '$baseUrl/admin-users/save/event';
+
+  //Get getEmployeesByManagers
+  static String getEmployeesByManagers(int webUserId) => '$baseUrl/web-users/getemployeesbymanagers/$webUserId';
 }

@@ -169,7 +169,8 @@ class _AttendanceLateArrivalDetailsScreenState
                       // Generating
                       final pdfFile = await pdfService.generateAndSavePdf(
                         data: data,
-                        title: 'Total Attendance Report',
+                        columns: List<String>.from(columns),
+                        title: 'Total late arrival Report',
                       );
 
                       // Open a PDF File
@@ -182,7 +183,8 @@ class _AttendanceLateArrivalDetailsScreenState
                       // Implement Excel logic
                       final excelFile = await excelService.generateAndSaveExcel(
                         data: data,
-                        filename: 'Total Attendance Report.xlsx',
+                        columns: List<String>.from(columns),   // 👈 add this
+                        filename: 'Total late arrival Report.xlsx',
                       );
 
                       // Open a Excel File

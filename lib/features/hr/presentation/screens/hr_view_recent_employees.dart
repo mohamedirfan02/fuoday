@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fuoday/commons/widgets/k_vertical_spacer.dart';
+import 'package:fuoday/features/hr/domain/entities/hr_overview_entity.dart';
 import 'package:fuoday/features/hr/presentation/widgets/hr_recent_employees_card.dart';
+import 'package:provider/provider.dart';
+import '../provider/hr_overview_provider.dart';
 
-class HRViewRecentEmployees extends StatelessWidget {
-  const HRViewRecentEmployees({super.key});
+class HRViewRecentEmployeesWidget extends StatelessWidget {
+  const HRViewRecentEmployeesWidget({super.key, required HROverviewEntity hrOverview});
 
   @override
   Widget build(BuildContext context) {
+    final employees = context.watch<HROverviewProvider>().hrOverview!.recentEmployees;
+
     return ListView.separated(
-      scrollDirection: Axis.vertical,
       physics: const BouncingScrollPhysics(),
-      separatorBuilder: (context, index) {
-        return KVerticalSpacer(height: 10.h);
-      },
-      itemCount: 10,
+      shrinkWrap: true,
+      itemCount: employees.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
+        final e = employees[index];
         return HRRecentEmployeesCard(
-          leadingEmployeeFirstLetter: "I",
-          employeeName: "Mohammed Irfan",
-          employeeDesignation: "Mobile App Developer",
-          employeeJoinDate: "11/11/2024",
+          leadingEmployeeFirstLetter: e.name.isNotEmpty ? e.name[0] : '',
+          employeeName: e.name,
+          employeeDesignation: e.role,
+          employeeJoinDate: e.dateOfJoining,
+         // profilePhotoUrl: e.profilePhoto,
         );
       },
     );

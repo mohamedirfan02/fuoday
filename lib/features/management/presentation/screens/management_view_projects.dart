@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fuoday/commons/widgets/k_data_table.dart';
+import 'package:fuoday/commons/widgets/k_vertical_spacer.dart';
+import 'package:fuoday/core/di/injection.dart';
+import 'package:fuoday/core/extensions/provider_extension.dart';
+import 'package:fuoday/core/service/hive_storage_service.dart';
+import 'package:fuoday/features/teams/presentation/widgets/k_team_project_tile.dart';
 
 class ManagementViewProjects extends StatefulWidget {
   const ManagementViewProjects({super.key});
@@ -10,54 +15,55 @@ class ManagementViewProjects extends StatefulWidget {
 }
 
 class _ManagementViewProjectsState extends State<ManagementViewProjects> {
-  // Project Management Data (matching your columns)
-  final columns = [
-    'S.No',
-    'Project Name',
-    'Domain',
-    'Team Members',
-    'Deadline',
-  ];
 
-  final data = [
-    {
-      'S.No': '1',
-      'Project Name': 'E-commerce Mobile App',
-      'Domain': 'Mobile Development',
-      'Team Members': '5',
-      'Deadline': '2025-08-15',
-    },
-    {
-      'S.No': '2',
-      'Project Name': 'Customer Analytics Dashboard',
-      'Domain': 'Data Analytics',
-      'Team Members': '3',
-      'Deadline': '2025-07-30',
-    },
-    {
-      'S.No': '3',
-      'Project Name': 'Cloud Migration System',
-      'Domain': 'Cloud Computing',
-      'Team Members': '7',
-      'Deadline': '2025-09-20',
-    },
-  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final webUserId = getIt<HiveStorageService>()
+        .employeeDetails?['web_user_id']
+        ?.toString();
+
+    if (webUserId != null) {
+      Future.microtask(() {
+        context.teamProjectProviderRead.fetchTeamProjects(webUserId);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Table
-          SizedBox(
-            height: 200.h,
-            child: KDataTable(columnTitles: columns, rowData: data),
-          ),
-        ],
+    final teamProjectProvider = context.teamProjectProviderWatch;
+
+    if (teamProjectProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (teamProjectProvider.error != null) {
+      return Center(child: Text("Error: ${teamProjectProvider.error}"));
+    }
+
+    if (teamProjectProvider.projects.isEmpty) {
+      return const Center(child: Text("No team projects available."));
+    }
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+      child: ListView.separated(
+        shrinkWrap: true,
+        itemCount: teamProjectProvider.projects.length,
+        itemBuilder: (context, index) {
+          final project = teamProjectProvider.projects[index];
+          return KTeamProjectTile(
+            projectName: project.name,
+            projectDomain: project.domain,
+            projectTeamMembers: project.teamMembers.map((e) => e.name).toList(),
+            projectStartMonthDate: project.deadline,
+            projectStatus: true,
+            projectReview: "Reviewed",
+          );
+        },
+        separatorBuilder: (context, index) => KVerticalSpacer(height: 10.h),
       ),
     );
   }
