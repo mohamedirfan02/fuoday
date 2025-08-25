@@ -13,32 +13,32 @@ class PayrollOverviewEntity {
 }
 
 class PayslipEntity {
-  final String month;
-  final String basic;
+  final String? month; // Made nullable
+  final num basic; // Changed to num (API returns int)
   final num overtime;
-  final String totalPaidDays;
+  final String? totalPaidDays; // Made nullable
   final num lop;
-  final String gross;
-  final String totalDeductions;
-  final String totalSalary;
+  final num gross; // Changed to num (API returns int)
+  final num totalDeductions; // Changed to num (API returns int)
+  final num totalSalary; // Changed to num (API returns int)
   final String totalSalaryWord;
   final String status;
-  final String date;
+  final String? date; // Made nullable
   final String companyName;
   final String logo;
 
   PayslipEntity({
-    required this.month,
+    this.month, // No longer required
     required this.basic,
     required this.overtime,
-    required this.totalPaidDays,
+    this.totalPaidDays, // No longer required
     required this.lop,
     required this.gross,
     required this.totalDeductions,
     required this.totalSalary,
     required this.totalSalaryWord,
     required this.status,
-    required this.date,
+    this.date, // No longer required
     required this.companyName,
     required this.logo,
   });

@@ -15,6 +15,7 @@ class HomeFeedsProjectDataRepositoryImpl
       assigned: model.assigned
           .map(
             (e) => HomeFeedEntity(
+              id: e.id, // 👈 added this
               date: e.date,
               description: e.description,
               assignedBy: e.assignedBy,
@@ -22,12 +23,15 @@ class HomeFeedsProjectDataRepositoryImpl
               projectName: e.projectName,
               progress: e.progress,
               deadline: e.deadline,
+              comment: e.comment,             // ✅
+              progressNote: e.progressNote,
             ),
           )
           .toList(),
       pending: model.pending
           .map(
             (e) => HomeFeedEntity(
+              id: e.id, // 👈 added this
               date: e.date,
               description: e.description,
               assignedBy: e.assignedBy,
@@ -35,6 +39,8 @@ class HomeFeedsProjectDataRepositoryImpl
               projectName: e.projectName,
               progress: e.progress,
               deadline: e.deadline,
+              comment: e.comment,             // ✅
+              progressNote: e.progressNote,
             ),
           )
           .toList(),

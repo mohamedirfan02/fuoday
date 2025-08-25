@@ -6,6 +6,7 @@ class EmployeeDetailsModel extends EmployeeDetailsEntity {
     required super.profilePhoto,
     required super.designation,
     required super.department,
+    required super.checkin,
   });
 
   factory EmployeeDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -14,6 +15,7 @@ class EmployeeDetailsModel extends EmployeeDetailsEntity {
       profilePhoto: json['profile_photo'] as String?,
       designation: json['designation'],
       department: json['department'],
+      checkin: json['checkin'],
     );
   }
 
@@ -23,6 +25,7 @@ class EmployeeDetailsModel extends EmployeeDetailsEntity {
       'profile_photo': profilePhoto,
       'designation': designation,
       'department': department,
+      'checkin': checkin,
     };
   }
 }

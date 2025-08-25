@@ -68,16 +68,16 @@ class _AddTaskState extends State<AddTask> {
     final employeeDetails = hiveService.employeeDetails;
 
     // Dynamically get web_user_id
-    final int webUserId =
-        int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '') ?? 0;
+    final int id =
+        int.tryParse(employeeDetails?['id']?.toString() ?? '') ?? 0;
 
-    if (webUserId == 0) {
-      print("❌ Invalid or missing web_user_id from Hive");
+    if (id == 0) {
+      print("❌ Invalid or missing id from Hive");
       return;
     }
 
     final useCase = getIt<FetchEmployeesUseCase>();
-    final result = await useCase(webUserId.toString());
+    final result = await useCase(id.toString());
 
     setState(() {
       employees = result;
@@ -167,15 +167,14 @@ class _AddTaskState extends State<AddTask> {
                 KDropdownTextFormField<String>(
                   hintText: "Select assigned person",
                   value: selectedEmployeeName,
-                  items: employees.map((e) => e.empName).toList(),
+                  items: employees.map((e) => e.name).toList(), // Changed from empName to name
                   onChanged: (value) {
                     final selected = employees.firstWhere(
-                      (e) => e.empName == value,
+                          (e) => e.name == value, // Changed from empName to name
                     );
                     setState(() {
-                      selectedEmployeeName = selected.empName;
-                      selectedEmployeeId = selected.webUserId
-                          .toString(); // Use this for task assignment
+                      selectedEmployeeName = selected.name; // Changed from empName to name
+                      selectedEmployeeId = selected.id.toString(); // Changed from webUserId to id
                     });
                   },
                 ),

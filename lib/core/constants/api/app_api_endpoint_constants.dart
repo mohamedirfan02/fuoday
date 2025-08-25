@@ -17,7 +17,8 @@ class AppApiEndpointConstants {
   static String get checkOut => '$baseUrl/hrms/attendance/updateattendance';
 
   // Calendar Endpoint
-  static String get getSchedules => '$baseUrl/hrms/timetracker/getschedules';
+  static String getSchedules(String webUserId) =>
+      '$baseUrl/hrms/timetracker/getSchedules/$webUserId';
 
   // Request Leave Endpoint
   static String get requestLeave => '$baseUrl/hrms/leave/addleave';
@@ -61,8 +62,8 @@ class AppApiEndpointConstants {
       '$baseUrl/hrms/home/getfeeds/$webUserId';
 
   //get all employee name and id list for assign task
-  static String allEmployeeList(String webUserId) =>
-      '$baseUrl/web-users/getemployeesbyadmin/$webUserId';
+  static String allEmployeeList(String id) =>
+      '$baseUrl/admin-users/getemployeesname/$id';
 
   //assign task to employee endpoint
   static String get assignTask => '$baseUrl/hrms/home/addtask';
@@ -154,4 +155,12 @@ class AppApiEndpointConstants {
 
   //Get getEmployeesByManagers
   static String getEmployeesByManagers(int webUserId) => '$baseUrl/web-users/getemployeesbymanagers/$webUserId';
+
+  //Leave Regulation
+  static String leaveRegulation = '$baseUrl/hrms/leave/regulate';
+
+  static String updateTasks = '$baseUrl/hrms/performance/updatetasks';
+
+  //get audit reporting team
+  static String getAuditReportingTeam(int webUserId) => '$baseUrl/hrms/performance/getauditreportingteam/$webUserId';
 }

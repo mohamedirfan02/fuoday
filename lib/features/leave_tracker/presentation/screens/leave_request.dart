@@ -25,6 +25,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
   final TextEditingController startDateController = TextEditingController();
   final TextEditingController endDateController = TextEditingController();
   final TextEditingController reasonController = TextEditingController();
+  final TextEditingController permission_timing = TextEditingController();
 
   // Format Date
   String formatDate(String date) {
@@ -78,6 +79,10 @@ class _LeaveRequestState extends State<LeaveRequest> {
         controller.text = "${picked.day}/${picked.month}/${picked.year}";
       }
     }
+// Get the current selected leave type
+    final selectedLeaveType = context.dropDownProviderWatch.getValue('leaveType');
+    final isPermissionSelected = selectedLeaveType?.toLowerCase() == 'permission';
+
 
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
@@ -91,11 +96,21 @@ class _LeaveRequestState extends State<LeaveRequest> {
           KDropdownTextFormField<String>(
             hintText: "Select Type",
             value: context.dropDownProviderWatch.getValue('leaveType'),
-            items: ['Sick Leave', 'Periods Leave', 'Casual Leave'],
+            items: ['Sick Leave', 'Periods Leave', 'Casual Leave','UnPaid Leave','paternity leave','permission'],
             onChanged: (value) =>
                 context.dropDownProviderRead.setValue('leaveType', value),
           ),
 
+          // Conditional Timing Drop Down TextForm Field - Only show when permission is selected
+          if (isPermissionSelected) ...[
+            KDropdownTextFormField<String>(
+              hintText: "Select timing",
+              value: context.dropDownProviderWatch.getValue('permissionHour'),
+              items: ['1 Hour', '2 Hour', '3 Hour','4 Hour'],
+              onChanged: (value) =>
+                  context.dropDownProviderRead.setValue('permissionHour', value),
+            ),
+          ],
           // Start Date TextFormField
           KAuthTextFormField(
             onTap: () {
@@ -136,15 +151,14 @@ class _LeaveRequestState extends State<LeaveRequest> {
             width: double.infinity,
             text: "Request",
             onPressed: () async {
-
               final employeeBox = Hive.box('employeeDetails');
               AppLoggerHelper.logInfo("Hive keys: ${employeeBox.keys}");
               AppLoggerHelper.logInfo("Hive values: ${employeeBox.toMap()}");
 
-
               try {
                 final type = context.dropDownProviderRead.getValue('leaveType');
                 final startDate = formatDate(startDateController.text);
+                final timing = context.dropDownProviderRead.getValue('permissionHour');
                 final endDate = formatDate(endDateController.text);
                 final reason = reasonController.text;
 
@@ -153,7 +167,12 @@ class _LeaveRequestState extends State<LeaveRequest> {
                     endDate.isEmpty ||
                     reason.isEmpty) {
                   KSnackBar.failure(context, "Please fill all fields");
+                  return;
+                }
 
+                // Additional validation for permission type
+                if (type.toLowerCase() == 'permission' && timing == null) {
+                  KSnackBar.failure(context, "Please select timing for permission");
                   return;
                 }
 
@@ -168,6 +187,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                   fromDate: startDate,
                   toDate: endDate,
                   reason: reason,
+                  permissionTiming: type.toLowerCase() == 'permission' ? timing ?? '' : '', // Only send timing for permission
                 );
 
                 // Show success message
@@ -181,13 +201,13 @@ class _LeaveRequestState extends State<LeaveRequest> {
                 endDateController.clear();
                 reasonController.clear();
                 context.dropDownProviderRead.setValue('leaveType', null);
+                context.dropDownProviderRead.setValue('permissionHour', null); // Clear timing too
+
               } catch (e) {
                 AppLoggerHelper.logError('Leave request error: $e');
-
                 KSnackBar.failure(context, "Error: ${e.toString()}");
               }
             },
-
             backgroundColor: AppColors.primaryColor,
           ),
         ],

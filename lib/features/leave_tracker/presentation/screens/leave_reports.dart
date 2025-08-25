@@ -32,7 +32,7 @@ class LeaveReports extends StatelessWidget {
   Widget build(BuildContext context) {
     final leaveRemoteDataSource = GetIt.I<LeaveRemoteDataSource>();
     final webUserId = GetIt.I<HiveStorageService>().employeeDetails?['web_user_id']
-            ?.toString() ?? '28';
+            ?.toString() ?? '';
 
     return FutureBuilder<List<LeaveReportModel>>(
       future: leaveRemoteDataSource.fetchLeaveReport(webUserId),
@@ -48,7 +48,7 @@ class LeaveReports extends StatelessWidget {
         }
 
         final leaveReports = snapshot.data!;
-        final columns = ['S.No', 'Date', 'Leave Type', 'Reason', 'Status'];
+        final columns = ['S.No', 'Date','From','To', 'Leave Type', 'Reason', 'Status','Permission Timing', 'Regulation Status', 'Regulation Date'];
 
         final data = leaveReports.asMap().entries.map((entry) {
           final index = entry.key;
@@ -56,9 +56,14 @@ class LeaveReports extends StatelessWidget {
           return {
             'S.No': '${index + 1}',
             'Date': report.date,
+            'From': report.from,
+            'To': report.to,
             'Leave Type': report.type,
             'Reason': report.reason,
             'Status': report.status,
+            'Permission Timing': report.permissionTiming,
+            'Regulation Status': report.regulationStatus,
+            'Regulation Date': report.regulationDate,
           };
         }).toList();
 
@@ -90,21 +95,6 @@ class LeaveReports extends StatelessWidget {
 // Extract chart data
         final months = monthCountMap.keys.toList();
         final attendanceData = monthCountMap.values.toList();
-
-        // final months = [
-        //   'Jan',
-        //   'Feb',
-        //   'Mar',
-        //   'Apr',
-        //   'May',
-        //   'Jun',
-        //   'Jul',
-        //   'Aug',
-        //   'Sep',
-        //   'Oct',
-        //   'Nov',
-        //   'Dec',
-        // ];
 
         return SingleChildScrollView(
           child: Column(

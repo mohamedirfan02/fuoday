@@ -12,6 +12,7 @@ class KCircularCachedImage extends StatelessWidget {
   final double borderWidth;
   final Color? backgroundColor;
   final VoidCallback? onTap;
+  final bool cacheBust; // <-- NEW
 
   const KCircularCachedImage({
     super.key,
@@ -24,6 +25,8 @@ class KCircularCachedImage extends StatelessWidget {
     this.borderWidth = 0.0,
     this.backgroundColor,
     this.onTap,
+    this.cacheBust = true, // <-- default true
+
   });
 
   @override
@@ -31,6 +34,11 @@ class KCircularCachedImage extends StatelessWidget {
     final isValidUrl =
         imageUrl.trim().isNotEmpty &&
         Uri.tryParse(imageUrl)?.hasAbsolutePath == true;
+
+    // Add timestamp param if cacheBust enabled
+    final finalUrl = cacheBust && isValidUrl
+        ? "$imageUrl?ts=${DateTime.now().millisecondsSinceEpoch}"
+        : imageUrl;
 
     return GestureDetector(
       onTap: onTap,
@@ -47,7 +55,7 @@ class KCircularCachedImage extends StatelessWidget {
         child: ClipOval(
           child: isValidUrl
               ? CachedNetworkImage(
-                  imageUrl: imageUrl,
+                  imageUrl: finalUrl,
                   fit: fit,
                   placeholder: (context, url) => _buildPlaceholder(),
                   errorWidget: (context, url, error) => _buildErrorWidget(),

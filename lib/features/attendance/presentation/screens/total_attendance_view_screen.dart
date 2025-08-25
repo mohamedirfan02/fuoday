@@ -28,6 +28,10 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
   // Controller
   final TextEditingController monthYearController = TextEditingController();
 
+  // Store selected month and year
+  int? selectedMonth;
+  int? selectedYear;
+
   late final HiveStorageService hiveService;
   late final Map<String, dynamic>? employeeDetails;
   late final String name;
@@ -57,9 +61,9 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
   }
 
   Future<void> selectMonthYear(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
+      BuildContext context,
+      TextEditingController controller,
+      ) async {
     final DateTime? picked = await showMonthPicker(
       context: context,
       initialDate: DateTime.now(),
@@ -68,9 +72,45 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
     );
 
     if (picked != null) {
+      selectedMonth = picked.month;
+      selectedYear = picked.year;
       controller.text = "${picked.month}/${picked.year}";
-      // Optionally filter here
+
+      // Trigger rebuild to update the table with filtered data
+      setState(() {});
     }
+  }
+
+  List<Map<String, String>> getFilteredData(List<Map<String, String>> allData) {
+    if (selectedMonth == null || selectedYear == null) {
+      return allData; // no filter
+    }
+
+    return allData.where((row) {
+      final dateString = row['Date'] ?? '';
+      if (dateString == '-' || dateString.isEmpty) return false;
+
+      try {
+        // Try parsing YYYY-MM-DD
+        final date = DateTime.tryParse(dateString);
+        if (date != null) {
+          return date.month == selectedMonth && date.year == selectedYear;
+        }
+      } catch (_) {
+        return false;
+      }
+
+      return false;
+    }).toList();
+  }
+
+
+  // Method to get filename with month/year suffix
+  String getFilenameSuffix() {
+    if (selectedMonth != null && selectedYear != null) {
+      return '_${selectedMonth?.toString().padLeft(2, '0')}_$selectedYear';
+    }
+    return '_all_months';
   }
 
   @override
@@ -89,27 +129,38 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
       'Status',
     ];
 
-    // Table Data
-    final List<Map<String, String>> data =
+    // All Table Data (unfiltered)
+    final List<Map<String, String>> allData =
         totalAttendanceProvider.attendanceDetails?.data?.days
             ?.asMap()
             .entries
             .map((entry) {
-              final index = entry.key + 1;
-              final day = entry.value;
+          final index = entry.key + 1;
+          final day = entry.value;
 
-              return {
-                'S.No': '$index',
-                'Date': day.date ?? '-',
-                'Day': day.day ?? '-',
-                'Log on': day.checkin ?? '-',
-                'Log off': day.checkout ?? '-',
-                'Worked hours': day.workedHours ?? '-',
-                'Status': day.status ?? '-',
-              };
-            })
+          return {
+            'S.No': '$index',
+            'Date': day.date ?? '-',
+            'Day': day.day ?? '-',
+            'Log on': day.checkin ?? '-',
+            'Log off': day.checkout ?? '-',
+            'Worked hours': day.workedHours ?? '-',
+            'Status': day.status ?? '-',
+          };
+        })
             .toList() ??
-        [];
+            [];
+
+    // Filtered data for display and download
+    final filteredData = getFilteredData(allData);
+
+    // Re-index the filtered data
+    final displayData = filteredData.asMap().entries.map((entry) {
+      final newIndex = entry.key + 1;
+      final row = Map<String, String>.from(entry.value);
+      row['S.No'] = '$newIndex';
+      return row;
+    }).toList();
 
     return Scaffold(
       appBar: KAppBar(
@@ -128,8 +179,10 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
             backgroundColor: AppColors.primaryColor,
             height: 24.h,
             width: double.infinity,
-            text: "Download",
-            onPressed: () {
+            text: displayData.isEmpty ? "No Data to Download" : "Download",
+       onPressed: displayData.isEmpty?
+              () {}
+            : ()  {
               showModalBottomSheet(
                 context: context,
                 shape: RoundedRectangleBorder(
@@ -141,33 +194,34 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
                   return KDownloadOptionsBottomSheet(
                     onPdfTap: () async {
                       final pdfService = getIt<PdfGeneratorService>();
+                      final suffix = getFilenameSuffix();
 
-                      // 👇 explicitly pass local table data & columns
+                      // Use filtered data for PDF
                       final pdfFile = await pdfService.generateAndSavePdf(
-                        data: List<Map<String, String>>.from(data), // force copy
-                        columns: List<String>.from(columns),        // force copy
-                        title: 'Total Attendance Report',
-                        filename: 'total_attendance_report.pdf',    // 👈 give unique filename
+                        data: List<Map<String, String>>.from(displayData),
+                        columns: List<String>.from(columns),
+                        title: selectedMonth != null && selectedYear != null
+                            ? 'Attendance Report - ${selectedMonth?.toString().padLeft(2, '0')}/$selectedYear'
+                            : 'Total Attendance Report',
+                        filename: 'attendance_report$suffix.pdf',
                       );
 
                       await OpenFilex.open(pdfFile.path);
                     },
 
                     onExcelTap: () async {
-                      // Excel Service
                       final excelService = getIt<ExcelGeneratorService>();
+                      final suffix = getFilenameSuffix();
 
-                      // 👇 explicitly pass local table data & columns
+                      // Use filtered data for Excel
                       final excelFile = await excelService.generateAndSaveExcel(
-                        data: List<Map<String, String>>.from(data), // force copy
-                        columns: List<String>.from(columns),        // pass headers
-                        filename: 'total_attendance_report.xlsx',   // 👈 unique filename
+                        data: List<Map<String, String>>.from(displayData),
+                        columns: List<String>.from(columns),
+                        filename: 'attendance_report$suffix.xlsx',
                       );
 
-                      // Open Excel File
                       await OpenFilex.open(excelFile.path);
                     },
-
                   );
                 },
               );
@@ -181,30 +235,102 @@ class _TotalAttendanceViewScreenState extends State<TotalAttendanceViewScreen> {
           : totalAttendanceProvider.errorMessage != null
           ? Center(child: Text(totalAttendanceProvider.errorMessage!))
           : SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    KAuthTextFormField(
-                      onTap: () {
-                        selectMonthYear(context, monthYearController);
-                      },
-                      hintText: "Select Month & Year",
-                      suffixIcon: Icons.calendar_month_outlined,
-                      keyboardType: TextInputType.text,
-                      controller: monthYearController,
-                    ),
-                    KVerticalSpacer(height: 30.h),
-                    SizedBox(
-                      height: 600.h,
-                      child: KDataTable(columnTitles: columns, rowData: data),
-                    ),
-                  ],
-                ),
+        physics: const BouncingScrollPhysics(),
+        child: Container(
+          margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              KAuthTextFormField(
+                onTap: () {
+                  selectMonthYear(context, monthYearController);
+                },
+                hintText: "Select Month & Year",
+                suffixIcon: Icons.calendar_month_outlined,
+                keyboardType: TextInputType.text,
+                controller: monthYearController,
               ),
-            ),
+              KVerticalSpacer(height: 10.h),
+
+              // Show selected filter info and clear option
+              if (selectedMonth != null && selectedYear != null)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.filter_alt, size: 16.sp, color: AppColors.primaryColor),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Showing: ${selectedMonth?.toString().padLeft(2, '0')}/$selectedYear (${displayData.length} records)',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedMonth = null;
+                            selectedYear = null;
+                            monthYearController.clear();
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(4.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: Icon(
+                            Icons.clear,
+                            size: 14.sp,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              KVerticalSpacer(height: 20.h),
+              SizedBox(
+                height: 600.h,
+                child: displayData.isEmpty
+                    ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 48.sp,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        selectedMonth != null && selectedYear != null
+                            ? 'No attendance data found for ${selectedMonth?.toString().padLeft(2, '0')}/$selectedYear'
+                            : 'No attendance data available',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+                    : KDataTable(columnTitles: columns, rowData: displayData),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

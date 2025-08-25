@@ -20,7 +20,6 @@ class PdfPreviewScreen extends StatelessWidget {
       appBar: KAppBar(
         title: "PDF Preview",
         subtitle: fileName,
-
         centerTitle: true,
         leadingIcon: Icons.arrow_back,
         onLeadingIconPress: () {

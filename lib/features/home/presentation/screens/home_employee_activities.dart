@@ -9,9 +9,13 @@ import 'package:fuoday/core/helper/app_logger_helper.dart';
 import 'package:fuoday/core/service/hive_storage_service.dart';
 import 'package:fuoday/core/themes/app_colors.dart';
 import 'package:fuoday/features/auth/presentation/widgets/k_auth_filled_btn.dart';
+import 'package:fuoday/features/home/data/model/event_model.dart';
+import 'package:fuoday/features/home/domain/entities/event_entity.dart';
 import 'package:fuoday/features/home/presentation/widgets/k_checkin_button.dart';
 import 'package:fuoday/features/home/presentation/widgets/k_home_activities_card.dart';
 import 'package:fuoday/features/home/presentation/widgets/k_home_activity_alert_dialog_box.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class HomeEmployeeActivities extends StatefulWidget {
@@ -264,33 +268,31 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                   physics: const BouncingScrollPhysics(),
                   child: Row(
                     children: [
-                      if (allEventsProvider.celebrations.isNotEmpty)
-                        _buildEventCard(
-                          context,
-                          title: "Celebrations",
-                          events: allEventsProvider.celebrations,
-                          img: AppAssetsConstants.birthdayImg,
-                          bg: AppColors.primaryColor,
-                        ),
-                      if (allEventsProvider.organizationalPrograms.isNotEmpty)
-                        _buildEventCard(
-                          context,
-                          title: "Organizational Program",
-                          events: allEventsProvider.organizationalPrograms,
-                          img: AppAssetsConstants.organizationalProgramImg,
-                          bg: AppColors.organizationalColor,
-                        ),
-                      if (allEventsProvider.announcements.isNotEmpty)
-                        _buildEventCard(
-                          context,
-                          title: "Announcements",
-                          events: allEventsProvider.announcements,
-                          img: AppAssetsConstants.announcementsImg,
-                          bg: AppColors.announcementColor,
-                        ),
+                      _buildEventCard(
+                        context,
+                        title: "Celebrations",
+                        events: allEventsProvider.celebrations,
+                        img: AppAssetsConstants.birthdayImg,
+                        bg: AppColors.primaryColor,
+                      ),
+                      _buildEventCard(
+                        context,
+                        title: "Organizational Program",
+                        events: allEventsProvider.organizationalPrograms,
+                        img: AppAssetsConstants.organizationalProgramImg,
+                        bg: AppColors.organizationalColor,
+                      ),
+                      _buildEventCard(
+                        context,
+                        title: "Announcements",
+                        events: allEventsProvider.announcements,
+                        img: AppAssetsConstants.announcementsImg,
+                        bg: AppColors.announcementColor,
+                      ),
                     ],
                   ),
                 ),
+
             ],
           ),
         ),
@@ -299,26 +301,86 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
   }
 
   Widget _buildEventCard(
-    BuildContext context, {
-    required String title,
-    required List events,
-    required String img,
-    required Color bg,
-  }) {
-    // Events
-    final event = events.first;
-
+      BuildContext context, {
+        required String title,
+        required List<EventEntity> events,
+        required String img,
+        required Color bg,
+      }) {
     return Padding(
       padding: EdgeInsets.only(right: 12.w),
       child: KHomeActivitiesCard(
         onTap: () {
           showDialog(
             context: context,
-            builder: (_) => KHomeActivityAlertDialogBox(
-              activityType: title,
-              date: formatIsoTime(event.date.toIso8601String()),
-              title: event.title,
-              subtitle: event.description,
+            builder: (_) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              title: KText(
+                text: title,
+                fontWeight: FontWeight.w600,
+                fontSize: 14.sp,
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: events.isEmpty
+                    ? Center(
+                  child: KText(
+                    text: "No $title available",
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12.sp,
+                    color: AppColors.greyColor,
+                  ),
+                )
+                    : ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: events.length,
+                  separatorBuilder: (_, __) => Divider(),
+                  itemBuilder: (_, index) {
+                    final event = events[index];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        KText(
+                          text: event.title,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.sp,
+                          color: AppColors.titleColor,
+                        ),
+                        KVerticalSpacer(height: 5.h),
+                        KText(
+                          text: event.description,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12.sp,
+                          color: AppColors.greyColor,
+                        ),
+                        KVerticalSpacer(height: 5.h),
+                        KText(
+                          // text: formatIsoTime(event.date as String?),
+                          text: '',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12.sp,
+                          color: AppColors.greyColor,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => GoRouter.of(context).pop(),
+                  child: Text(
+                    "Close",
+                    style: GoogleFonts.sora(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12.sp,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },

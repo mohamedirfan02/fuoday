@@ -51,8 +51,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'features/leave_tracker/presentation/providers/leave_regulation_provider.dart';
 import 'features/management/presentation/provider/emp_audit_form_provider.dart';
 import 'features/payslip/presentation/Provider/payroll_overview_provider.dart';
+import 'features/performance/presentation/providers/audit_reporting_team_provider.dart';
 
 void commonMain() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -251,6 +253,15 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => getIt<EmpAuditFormProvider>(),
         ),
+
+        ChangeNotifierProvider(
+          create: (context) => getIt<LeaveRegulationProvider>(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (context) => getIt<AuditReportingTeamProvider>(),
+        ),
+
 
 
       ],

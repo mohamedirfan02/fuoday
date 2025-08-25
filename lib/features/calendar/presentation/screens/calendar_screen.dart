@@ -20,6 +20,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
   late String selectedMonth;
   DateTime? _currentViewDate;
 
+  DateTime parseShiftDate(String date, String time) {
+    // Ensure time has seconds
+    final normalizedTime = time.length == 5 ? '$time:00' : time;
+    try {
+      return DateTime.parse('$date $normalizedTime');
+    } catch (_) {
+      // fallback if parsing fails
+      return DateTime.now();
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
@@ -95,14 +107,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
             : SfCalendar(
                 view: CalendarView.month,
                 dataSource: ShiftAppointmentDataSource(
-                  provider.shifts.map((shift) {
+                  (provider.shifts ?? []).map((shift) {
                     return Appointment(
-                      startTime: DateTime.parse(
-                        '${shift.date} ${shift.shiftStart}',
-                      ),
-                      endTime: DateTime.parse(
-                        '${shift.date} ${shift.shiftEnd}',
-                      ),
+                      startTime: parseShiftDate(shift.date, shift.shiftStart),
+                      endTime: parseShiftDate(shift.date, shift.shiftEnd),
                       subject: 'Shift',
                       color: AppColors.primaryColor,
                     );

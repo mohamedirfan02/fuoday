@@ -32,7 +32,6 @@ class TimeTrackerOverview extends StatelessWidget {
       return {
         'S.No': '${i + 1}',
         'Date': attendance.date,
-        //'Day': dayName,
         'Log on': attendance.firstLogin,
         'Log off': attendance.lastLogout,
         'Worked hours': attendance.totalHours,
@@ -47,19 +46,32 @@ class TimeTrackerOverview extends StatelessWidget {
         children: [
           SizedBox(
             height: 0.2.sh,
-            child: ListView.separated(
+            child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                return TimeTrackerOverviewCard(
-                  iconData: Icons.lock_clock,
-                  timeTrackerOverviewCardTitle: "Weekly Working Hours",
-                  timeTrackerOverviewCardWorkingHours: "48 Hours",
-                );
-              },
-              separatorBuilder: (context, index) => KHorizontalSpacer(width: 10.w),
-              itemCount: 3,
+              child: Row(
+                children: [
+                  TimeTrackerOverviewCard(
+                    iconData: Icons.lock_clock,
+                    timeTrackerOverviewCardTitle: "Weekly Working Hours",
+                    timeTrackerOverviewCardWorkingHours: "48 Hours",
+                  ),
+                  KHorizontalSpacer(width: 10.w),
+                  TimeTrackerOverviewCard(
+                    iconData: Icons.calendar_month,
+                    timeTrackerOverviewCardTitle: "Work Time Per Day",
+                    timeTrackerOverviewCardWorkingHours: "8 Hours",
+                  ),
+                  KHorizontalSpacer(width: 10.w),
+                  TimeTrackerOverviewCard(
+                    iconData: Icons.access_time,
+                    timeTrackerOverviewCardTitle: "Break Time Per Day",
+                    timeTrackerOverviewCardWorkingHours: "1 Hours",
+                  ),
+                ],
+              ),
             ),
           ),
+
           KVerticalSpacer(height: 20.h),
           KText(
             text: "Time Management",

@@ -1,16 +1,22 @@
+// File: features/attendance/domain/entities/total_punctual_arrivals_details_entity.dart
+
 class TotalPunctualArrivalsDetailsEntity {
   final String? message;
   final String? status;
   final PunctualDataEntity? data;
 
-  TotalPunctualArrivalsDetailsEntity({this.message, this.status, this.data});
+  TotalPunctualArrivalsDetailsEntity({
+    this.message,
+    this.status,
+    this.data
+  });
 }
 
 class PunctualDataEntity {
   final String? employeeName;
   final int? totalPunctualArrivals;
   final int? recordsUpdated;
-  final int? punctualArrivalPercentage;
+  final double? punctualArrivalPercentage;
   final List<PunctualArrivalRecordEntity>? punctualArrivalsDetails;
 
   PunctualDataEntity({

@@ -9,6 +9,7 @@ class HomeFeedsProjectDataEntity {
 }
 
 class HomeFeedEntity {
+  final int id; // ✅ Add this
   final String date;
   final String description;
   final String assignedBy;
@@ -16,8 +17,11 @@ class HomeFeedEntity {
   final String projectName;
   final String progress;
   final String deadline;
+  final String? comment;        // ✅ new
+  final String? progressNote;   // ✅ new
 
   HomeFeedEntity({
+    required this.id, // ✅ include in constructor
     required this.date,
     required this.description,
     required this.assignedBy,
@@ -25,5 +29,7 @@ class HomeFeedEntity {
     required this.projectName,
     required this.progress,
     required this.deadline,
+     this.comment,        // ✅
+     this.progressNote,   // ✅
   });
 }

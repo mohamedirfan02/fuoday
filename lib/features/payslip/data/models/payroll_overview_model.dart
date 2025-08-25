@@ -26,11 +26,7 @@ class PayrollOverviewModel extends PayrollOverviewEntity {
     Map<String, num> parseComponentsFromMap(Map<String, dynamic> map) {
       final result = <String, num>{};
       map.forEach((key, value) {
-        if (value is num) {
-          result[key] = value;
-        } else if (value is String) {
-          result[key] = num.tryParse(value) ?? 0;
-        }
+        result[key] = _parseNum(value);
       });
       return result;
     }
@@ -43,11 +39,7 @@ class PayrollOverviewModel extends PayrollOverviewEntity {
           final key = item['component'] as String? ?? '';
           final value = item['amount'];
           if (key.isNotEmpty) {
-            if (value is num) {
-              result[key] = value;
-            } else if (value is String) {
-              result[key] = num.tryParse(value) ?? 0;
-            }
+            result[key] = _parseNum(value);
           }
         }
       }
@@ -67,13 +59,13 @@ class PayrollOverviewModel extends PayrollOverviewEntity {
     return PayrollOverviewModel(
       payslip: PayslipEntity(
         month: data['payslip']['month'],
-        basic: data['payslip']['basic'],
+        basic: _parseNum(data['payslip']['basic']),
         overtime: _parseNum(data['payslip']['overtime']),
         totalPaidDays: data['payslip']['total_paid_days'],
         lop: _parseNum(data['payslip']['lop']),
-        gross: data['payslip']['gross'],
-        totalDeductions: data['payslip']['total_deductions'],
-        totalSalary: data['payslip']['total_salary'],
+        gross: _parseNum(data['payslip']['gross']),
+        totalDeductions: _parseNum(data['payslip']['total_deductions']),
+        totalSalary: _parseNum(data['payslip']['total_salary']),
         totalSalaryWord: data['payslip']['total_salary_word'],
         status: data['payslip']['status'],
         date: data['payslip']['date'],
@@ -99,4 +91,5 @@ class PayrollOverviewModel extends PayrollOverviewEntity {
       ),
     );
   }
+
 }

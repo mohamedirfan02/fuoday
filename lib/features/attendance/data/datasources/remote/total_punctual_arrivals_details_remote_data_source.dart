@@ -1,23 +1,38 @@
-import 'package:fuoday/core/constants/api/app_api_endpoint_constants.dart';
 import 'package:fuoday/core/service/dio_service.dart';
 import 'package:fuoday/features/attendance/data/models/total_punctual_arrivals_details_model.dart';
 
-class TotalPunctualArrivalDetailsRemoteDataSource {
+abstract class AttendanceRemoteDataSource {
+  Future<TotalPunctualArrivalsDetailsModel> getTotalPunctualArrivalDetails(int webUserId);
+}
+
+class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
   final DioService dioService;
 
-  TotalPunctualArrivalDetailsRemoteDataSource({required this.dioService});
+  AttendanceRemoteDataSourceImpl({required this.dioService});
 
-  Future<TotalPunctualArrivalsDetailsModel> getTotalPunctualArrivalsDetails(
-    int webUserId,
-  ) async {
+  @override
+  Future<TotalPunctualArrivalsDetailsModel> getTotalPunctualArrivalDetails(int webUserId) async {
     try {
-      final response = await dioService.get(
-        AppApiEndpointConstants.getPunctualArrivalsDetails(webUserId),
-      );
+      print('🔍 DataSource: Fetching punctual arrivals for webUserId: $webUserId');
 
-      final data = response.data['data'];
-      return TotalPunctualArrivalsDetailsModel.fromJson(data);
-    } catch (e) {
+      final response = await dioService.get('/hrms/attendance/punctual-arrivals/$webUserId');
+
+      print('🔍 DataSource: API response status: ${response.statusCode}');
+      print('🔍 DataSource: API response data type: ${response.data.runtimeType}');
+
+      if (response.statusCode == 200 || response.statusCode == null) {
+        final jsonData = response.data as Map<String, dynamic>;
+
+        final model = TotalPunctualArrivalsDetailsModel.fromJson(jsonData);
+
+        print('✅ DataSource: Model parsed successfully');
+        return model;
+      } else {
+        throw Exception('API call failed with status: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      print('❌ DataSource Error: $e');
+      print(stackTrace);
       rethrow;
     }
   }

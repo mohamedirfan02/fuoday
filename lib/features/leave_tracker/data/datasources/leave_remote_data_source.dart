@@ -30,6 +30,7 @@ class LeaveRemoteDataSource {
     required String fromDate,
     required String toDate,
     required String reason,
+    required String permissionTiming,
   }) async {
 
     final box = Hive.box(AppHiveStorageConstants.employeeDetailsBoxKey);
@@ -42,13 +43,19 @@ class LeaveRemoteDataSource {
       throw Exception("web_user_id missing.");
     }
 
-    final body = {
+    // Build body conditionally
+    final body = <String, dynamic>{
       "web_user_id": webUserId,
       "type": type,
       "from": fromDate,
       "to": toDate,
       "reason": reason,
     };
+
+    // Only add permission_timing if it's a permission leave type and timing is provided
+    if (type.toLowerCase() == 'permission' && permissionTiming != null && permissionTiming.isNotEmpty) {
+      body["permission_timing"] = permissionTiming;
+    }
 
     print("📤 Sending Leave Request...");
     print("➡️ Payload: $body");

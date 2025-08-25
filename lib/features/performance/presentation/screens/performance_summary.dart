@@ -42,75 +42,30 @@ class _PerformanceSummaryState extends State<PerformanceSummary> {
   Widget build(BuildContext context) {
     // Providers
     final provider = context.performanceSummaryProviderWatch;
-
-    // Columns
+// Columns
     final columns = [
-      'S.No',
       'Date',
       'Task',
+      'Assigned By',
       'Deadline',
       'Status',
       'Progress Note',
-      'Next Step',
-    ];
 
-    // Updated Data matching the columns
-    final data = [
-      {
-        'S.No': '1',
-        'Date': '2025-07-01',
-        'Task': 'UI Design Review',
-        'Deadline': '2025-07-05',
-        'Status': 'In Progress',
-        'Progress Note': 'Completed wireframes, working on mockups',
-        'Next Step': 'Finalize color scheme and typography',
-      },
-      {
-        'S.No': '2',
-        'Date': '2025-07-02',
-        'Task': 'API Integration',
-        'Deadline': '2025-07-08',
-        'Status': 'Not Started',
-        'Progress Note': 'Waiting for backend team to complete endpoints',
-        'Next Step': 'Start authentication module integration',
-      },
-      {
-        'S.No': '3',
-        'Date': '2025-07-03',
-        'Task': 'Database Migration',
-        'Deadline': '2025-07-10',
-        'Status': 'Completed',
-        'Progress Note': 'Successfully migrated all user data',
-        'Next Step': 'Performance testing and optimization',
-      },
-      {
-        'S.No': '4',
-        'Date': '2025-07-04',
-        'Task': 'Testing & QA',
-        'Deadline': '2025-07-12',
-        'Status': 'In Progress',
-        'Progress Note': 'Unit tests completed, integration tests ongoing',
-        'Next Step': 'Complete user acceptance testing',
-      },
-      {
-        'S.No': '5',
-        'Date': '2025-07-05',
-        'Task': 'Code Review',
-        'Deadline': '2025-07-07',
-        'Status': 'Pending',
-        'Progress Note': 'Submitted for peer review',
-        'Next Step': 'Address review comments and refactor',
-      },
-      {
-        'S.No': '6',
-        'Date': '2025-07-06',
-        'Task': 'Documentation',
-        'Deadline': '2025-07-15',
-        'Status': 'Not Started',
-        'Progress Note': 'Gathering requirements and specifications',
-        'Next Step': 'Create technical documentation outline',
-      },
     ];
+// instead of hardcoding
+    final data = provider.summary?.tasks?.map((task) {
+      return {
+        //'S.No': task.id.toString(),
+        'Date': task.date ?? '',
+        'Task': task.description ?? '',
+        'Assigned By': task.assignedBy ?? '',
+        'Deadline': task.deadline ?? '',
+        'Status': task.status ?? '',
+        'Progress Note': task.progressNote ?? '',
+
+      };
+    }).toList() ?? [];
+
 
     // Performance Summary Card
     final performanceSummaryCard = [
@@ -130,9 +85,7 @@ class _PerformanceSummaryState extends State<PerformanceSummary> {
       {
         'iconData': Icons.star_rate,
         'cardTitle': "Performance Ratings",
-        'cardSubTitle':
-            provider.summary?.performanceRatingOutOf5?.toString() ??
-            "No Performance Ratings",
+        'cardSubTitle': "${provider.summary?.performanceRatingOutOf5?.toString() ??'0'}/5"
       },
       {
         'iconData': Icons.calendar_today,

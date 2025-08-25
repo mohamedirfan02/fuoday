@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:fuoday/core/constants/router/app_route_constants.dart';
 import 'package:fuoday/core/models/file_preview_data.dart';
 import 'package:fuoday/features/approval/presentation/screens/approval_screen.dart';
@@ -40,6 +41,59 @@ import 'package:fuoday/features/time_tracker/presentation/screens/time_tracker_s
 import 'package:fuoday/features/work/presentation/screens/work_screen.dart';
 import 'package:go_router/go_router.dart';
 
+/// Transition helpers
+CustomTransitionPage<T> _buildPageWithTransition<T>({
+  required GoRouterState state,
+  required Widget child,
+  required Widget Function(Animation<double>, Animation<double>, Widget) transition,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return transition(animation, secondaryAnimation, child);
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+  );
+}
+
+/// Slide from right (Auth)
+Widget _slideFromRight(Animation<double> animation, Animation<double> _, Widget child) {
+  return SlideTransition(
+    position: Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(animation),
+    child: child,
+  );
+}
+
+/// Fade in (Home/Dashboard)
+Widget _fadeIn(Animation<double> animation, Animation<double> _, Widget child) {
+  return FadeTransition(opacity: animation, child: child);
+}
+
+/// Scale in (Profile)
+Widget _scaleIn(Animation<double> animation, Animation<double> _, Widget child) {
+  return ScaleTransition(
+    scale: Tween<double>(begin: 0.9, end: 1).animate(
+      CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+    ),
+    child: child,
+  );
+}
+
+/// Slide up (default/details)
+Widget _slideUp(Animation<double> animation, Animation<double> _, Widget child) {
+  return SlideTransition(
+    position: Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(animation),
+    child: child,
+  );
+}
+
 final GoRouter appRouter = GoRouter(
   // initial route
   initialLocation: "/splash",
@@ -49,120 +103,154 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: "/splash",
       name: AppRouteConstants.splash,
-      builder: (context, state) => SplashScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: SplashScreen(),
+        transition: _fadeIn,
+      ),
     ),
 
     // on boarding screen
     GoRoute(
       path: "/onBoarding",
       name: AppRouteConstants.onBoarding,
-      builder: (context, state) => OnBoardingScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: OnBoardingScreen(),
+        transition: _fadeIn,
+      ),
     ),
 
     // Auth login screen
     GoRoute(
       path: "/authLogin",
       name: AppRouteConstants.login,
-      builder: (context, state) => AuthLoginScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: AuthLoginScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Auth forget password screen
     GoRoute(
       path: "/authForgetPassword",
       name: AppRouteConstants.forgetPassword,
-      builder: (context, state) {
-        return AuthForgetPasswordScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: AuthForgetPasswordScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Auth forget password screen
     GoRoute(
       path: "/authOTP",
       name: AppRouteConstants.otp,
-      builder: (context, state) {
-        return AuthOtpScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: AuthOtpScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Home Employee screen
     GoRoute(
       path: "/homeEmployee",
       name: AppRouteConstants.homeEmployee,
-      builder: (context, state) {
-        return HomeEmployeeScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: HomeEmployeeScreen(),
+        transition: _fadeIn,
+      ),
     ),
 
     // Home Employee screen
     GoRoute(
       path: "/homeRecruiter",
       name: AppRouteConstants.homeRecruiter,
-      builder: (context, state) {
-        return HomeRecruiterScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: HomeRecruiterScreen(),
+        transition: _fadeIn,
+      ),
     ),
 
     // Profile Screen
     GoRoute(
       path: "/profile",
       name: AppRouteConstants.profile,
-      builder: (context, state) {
-        return ProfileScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: ProfileScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Profile educational background screen
     GoRoute(
       path: "/profileEducationalBackground",
       name: AppRouteConstants.profileEducationalBackground,
-      builder: (context, state) {
-        return ProfileEducationalBackgroundScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: ProfileEducationalBackgroundScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Profile Employment Details Screen
     GoRoute(
       path: "/profileEmploymentDetails",
       name: AppRouteConstants.profileEmploymentDetails,
-      builder: (context, state) {
-        return ProfileEmploymentDetailsScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: ProfileEmploymentDetailsScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Profile On Boarding Screen
     GoRoute(
       path: "/profileOnBoarding",
       name: AppRouteConstants.profileOnBoarding,
-      builder: (context, state) {
-        return ProfileOnBoardingScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: ProfileOnBoardingScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Profile Personal Details Screen
     GoRoute(
       path: "/profilePersonalDetails",
       name: AppRouteConstants.profilePersonalDetails,
-      builder: (context, state) {
-        return ProfilePersonalDetailsScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: ProfilePersonalDetailsScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Profile Professional Experience Screen
     GoRoute(
       path: "/profileProfessionalExperience",
       name: AppRouteConstants.profileProfessionalExperience,
-      builder: (context, state) {
-        return ProfileProfessionalExperienceScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: ProfileProfessionalExperienceScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Approval Screen
     GoRoute(
       path: "/approval",
       name: AppRouteConstants.approval,
-      builder: (context, state) {
-        return ApprovalScreen();
-      },
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        state: state,
+        child: ApprovalScreen(),
+        transition: _slideFromRight,
+      ),
     ),
 
     // Feeds Screen
@@ -214,10 +302,24 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: "/employeeBottomNav",
       name: AppRouteConstants.employeeBottomNav,
-      builder: (context, state) {
-        return EmployeeBottomNav();
+      pageBuilder: (context, state) {
+        return CustomTransitionPage(
+          key: state.pageKey,
+          child: const EmployeeBottomNav(),
+          transitionDuration: const Duration(milliseconds: 300),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Slide from bottom
+            final tween = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero);
+            final curvedAnimation = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+            return SlideTransition(
+              position: tween.animate(curvedAnimation),
+              child: child,
+            );
+          },
+        );
       },
     ),
+
 
     // recruiter bottom nav
     GoRoute(

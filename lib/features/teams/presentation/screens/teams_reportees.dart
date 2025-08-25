@@ -26,15 +26,16 @@ class _TeamsReporteesState extends State<TeamsReportees> {
 
     if (webUserId != null) {
       Future.microtask(() {
-        context.teamReporteesProviderRead.fetchReportees(webUserId);
+        // ✅ use TeamMembersProvider
+        context.teamMemberProviderRead.fetchTeamMembers(webUserId);
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Providers
-    final teamReporteesProvider = context.teamReporteesProviderWatch;
+    // ✅ TeamMembersProvider
+    final teamMembersProvider = context.teamMemberProviderWatch;
     final internetCheckerProvider = context.appInternetCheckerProviderWatch;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,34 +62,36 @@ class _TeamsReporteesState extends State<TeamsReportees> {
 
           KVerticalSpacer(height: 12.h),
 
-          if (teamReporteesProvider.isLoading)
+          if (teamMembersProvider.isLoading)
             const Expanded(child: Center(child: CircularProgressIndicator()))
-          else if (teamReporteesProvider.error != null)
+          else if (teamMembersProvider.error != null)
             Expanded(
-              child: Center(child: Text('❌ ${teamReporteesProvider.error}')),
+              child: Center(child: Text('❌ ${teamMembersProvider.error}')),
             )
-          else if (teamReporteesProvider.reportees.isEmpty)
-            const Expanded(
-              child: Center(child: Text('No direct reports available.')),
-            )
-          else
-            Expanded(
-              child: ListView.separated(
-                itemCount: teamReporteesProvider.reportees.length,
-                itemBuilder: (context, index) {
-                  final member = teamReporteesProvider.reportees[index];
-                  return KTeamDirectReportTile(
-                    personName: member.name,
-                    personRole: member.designation,
-                    personContact: member.department,
-                    avatarPersonFirstLetter: member.name[0],
-                    avatarBgColor: AppColors.primaryColor,
-                  );
-                },
-                separatorBuilder: (context, index) =>
-                    KVerticalSpacer(height: 10.h),
+          else if (teamMembersProvider.teamMembers.isEmpty)
+              const Expanded(
+                child: Center(child: Text('No direct reports available.')),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  itemCount: teamMembersProvider.teamMembers.length,
+                  itemBuilder: (context, index) {
+                    final member = teamMembersProvider.teamMembers[index];
+                    return KTeamDirectReportTile(
+                      personName: member.name,
+                      personRole: member.designation,
+                      personContact: member.department,
+                      avatarPersonFirstLetter: member.name.isNotEmpty
+                          ? member.name[0]
+                          : '?',
+                      avatarBgColor: AppColors.primaryColor,
+                    );
+                  },
+                  separatorBuilder: (context, index) =>
+                      KVerticalSpacer(height: 10.h),
+                ),
               ),
-            ),
         ],
       ),
     );

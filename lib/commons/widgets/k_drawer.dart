@@ -27,6 +27,8 @@ class KDrawer extends StatelessWidget {
     final employeeDetails = HiveStorageService().employeeDetails ?? {};
     final designation = (employeeDetails['designation'] ?? '').toString();
 
+    final managementRoles = ['assistant manager-it', 'founder & ceo'];
+
     return Drawer(
       backgroundColor: AppColors.secondaryColor,
       child: Column(
@@ -62,7 +64,7 @@ class KDrawer extends StatelessWidget {
                   drawerTitle: "Teams",
                   drawerListTileOnTap: () {
                     Navigator.pop(context); // Close drawer
-                    GoRouter.of(context).pushNamed(AppRouteConstants.teams);
+                    GoRouter.of(context).pushNamed(AppRouteConstants.teams,);
                   },
                   drawerLeadingIcon: Icons.group,
                 ),
@@ -127,7 +129,7 @@ class KDrawer extends StatelessWidget {
                   ),
 
                 // Management
-                if (designation.trim().toLowerCase() == 'assistant manager')
+                if (managementRoles.contains(designation.trim().toLowerCase()))
                   KDrawerListTile(
                     drawerTitle: "Management",
                     drawerListTileOnTap: () {

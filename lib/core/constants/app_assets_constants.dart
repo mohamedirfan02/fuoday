@@ -16,4 +16,6 @@ class AppAssetsConstants {
   static const String logo = "assets/images/png/fuoday-logo.png";
   static const String attendanceImg = "assets/images/svg/attendance-timing.svg";
   static const String sunImg = "assets/images/svg/sun.svg";
+  static const String emptyData = "assets/images/svg/empty.svg";
+
 }

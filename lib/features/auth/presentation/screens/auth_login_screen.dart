@@ -312,7 +312,6 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                             backgroundColor:
                                                 AppColors.primaryColor,
                                             onPressed: () async {
-
                                               // Internet Checker Provider
                                               if (!internetCheckerProvider
                                                   .isNetworkConnected) {
@@ -322,7 +321,6 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                                 );
                                                 return;
                                               }
-
 
                                               // Form Key Validation
                                               if (!formKey.currentState!
@@ -412,6 +410,20 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                                             .adminUser
                                                             .logo ??
                                                         "No Image Url",
+                                                    checkin:
+                                                        provider
+                                                            .authEntity
+                                                            ?.data
+                                                            .employeeDetails
+                                                            .checkin ??
+                                                        'no checkin',
+                                                    id: provider
+                                                        .authEntity
+                                                        ?.data
+                                                        .adminUser
+                                                        .id
+                                                        ?.toString() ?? // Convert int to String if needed
+                                                        "No ID",
                                                   );
 
                                                   AppLoggerHelper.logInfo(
@@ -521,6 +533,12 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                                             ?.data
                                                             .empId ??
                                                         "No EmpId",
+                                                    checkin:
+                                                        provider
+                                                            .authEntity
+                                                            ?.data
+                                                            .checkin ??
+                                                        "checkin",
                                                     email: emailId,
                                                     designation:
                                                         provider
@@ -547,6 +565,13 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                                             .adminUser
                                                             .logo ??
                                                         "No Image Url",
+                                                    id: provider
+                                                        .authEntity
+                                                        ?.data
+                                                        .adminUser
+                                                        .id
+                                                        ?.toString() ?? // Convert int to String if needed
+                                                        "No ID",
                                                   );
 
                                                   AppLoggerHelper.logInfo(

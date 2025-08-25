@@ -35,7 +35,7 @@ class _SupportScreenState extends State<SupportScreen> {
   // controllers
   final TextEditingController dateMonthYearController = TextEditingController();
   final TextEditingController assignToPersonController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController userIdController = TextEditingController();
   final TextEditingController categoryController = TextEditingController();
   final TextEditingController ticketController = TextEditingController();
@@ -56,43 +56,43 @@ class _SupportScreenState extends State<SupportScreen> {
   void initState() {
     super.initState();
     fetchEmployees();
+
+    // ✅ Move fetchTickets to initState or use WidgetsBinding.instance.addPostFrameCallback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final hive = getIt<HiveStorageService>();
+      final id = int.parse(hive.employeeDetails?['web_user_id'] ?? '0');
+      context.read<GetTicketDetailsProvider>().fetchTickets(id, context);
+    });
   }
 
   List<EmployeeModel> employees = [];
   String? selectedEmployeeName;
   String? selectedEmployeeId;
 
-
   Future<void> fetchEmployees() async {
     final hiveService = getIt<HiveStorageService>();
     final employeeDetails = hiveService.employeeDetails;
 
     // Dynamically get web_user_id
-    final int webUserId =
-        int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '') ?? 0;
+    final int id =
+        int.tryParse(employeeDetails?['id']?.toString() ?? '') ?? 0;
 
-    if (webUserId == 0) {
+    if (id == 0) {
       print("❌ Invalid or missing web_user_id from Hive");
       return;
     }
 
     final useCase = getIt<FetchEmployeesUseCase>();
-    final result = await useCase(webUserId.toString());
+    final result = await useCase(id.toString());
 
     setState(() {
       employees = result;
     });
     print("✅ Employees fetched: ${result.length}");
-
   }
 
   @override
   Widget build(BuildContext context) {
-
-    final hive = getIt<HiveStorageService>();
-    final id = int.parse(hive.employeeDetails?['web_user_id'] ?? '0');
-    context.read<GetTicketDetailsProvider>().fetchTickets(id, context);
-
 
     // Select Date
     Future<void> selectDate(
@@ -123,9 +123,7 @@ class _SupportScreenState extends State<SupportScreen> {
       if (picked != null) {
         controller.text = DateFormat('yyyy-MM-dd').format(picked);
       }
-
     }
-
 
     return DefaultTabController(
       length: 4,
@@ -164,7 +162,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         left: 20.w,
                         right: 20.w,
                         bottom:
-                            MediaQuery.of(context).viewInsets.bottom +
+                        MediaQuery.of(context).viewInsets.bottom +
                             20.h, // keyboard aware
                         top: 10.h,
                       ),
@@ -225,22 +223,21 @@ class _SupportScreenState extends State<SupportScreen> {
 
                             KVerticalSpacer(height: 10.h),
 
-                            // Assign to employee
+                            // Assign to employee - ✅ Fixed dropdown
                             employees.isEmpty
-                                ? const Center(child: CircularProgressIndicator()) // or any fallback
+                                ? const Center(child: CircularProgressIndicator())
                                 : KDropdownTextFormField<String>(
                               hintText: "Select assigned person",
                               value: selectedEmployeeName,
-                              items: employees.map((e) => e.empName ?? 'Unknown').toList(),
+                              items: employees.map((e) => e.name ?? 'Unknown').toList(), // ✅ Fixed: use .name instead of .empName
                               onChanged: (value) {
-                                final selected = employees.firstWhere((e) => e.empName == value);
+                                final selected = employees.firstWhere((e) => e.name == value); // ✅ Fixed: use .name
                                 setState(() {
-                                  selectedEmployeeName = selected.empName;
-                                  selectedEmployeeId = selected.webUserId.toString();
+                                  selectedEmployeeName = selected.name; // ✅ Fixed: use .name
+                                  selectedEmployeeId = selected.id.toString(); // ✅ Fixed: use .id instead of .webUserId
                                 });
                               },
                             ),
-
 
                             KVerticalSpacer(height: 10.h),
 

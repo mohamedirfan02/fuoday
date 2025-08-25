@@ -32,6 +32,12 @@ class ProfilePersonalDetailsScreen extends StatefulWidget {
 
 class _ProfilePersonalDetailsScreenState
     extends State<ProfilePersonalDetailsScreen> {
+
+  String getFreshImageUrl(String url) {
+    if (url.isEmpty) return url;
+    return "$url?ts=${DateTime.now().millisecondsSinceEpoch}";
+  }
+
   // form key
   final formKey = GlobalKey<FormState>();
 
@@ -121,7 +127,8 @@ class _ProfilePersonalDetailsScreenState
     final employeeDetails = hiveService.employeeDetails;
 
     // Safe extraction of employee details
-    final profilePhoto = employeeDetails?['profilePhoto'] ?? "";
+    var profilePhoto = employeeDetails?['profilePhoto'] ?? "";
+    profilePhoto = getFreshImageUrl(profilePhoto);
 
     return Scaffold(
       appBar: KAppBar(

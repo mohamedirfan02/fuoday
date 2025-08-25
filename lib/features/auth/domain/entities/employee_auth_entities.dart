@@ -47,12 +47,14 @@ class EmployeeDetailsEntity {
   final String? profilePhoto;
   final String designation;
   final String department;
+  final String? checkin;
 
   const EmployeeDetailsEntity({
     required this.webUserId,
     required this.profilePhoto,
     required this.designation,
     required this.department,
+    required this.checkin,
   });
 }
 

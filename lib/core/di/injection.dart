@@ -79,14 +79,19 @@ import 'package:fuoday/features/hr/data/repository/hr_overview_repository_impl.d
 import 'package:fuoday/features/hr/domain/repository/hr_overview_repository.dart';
 import 'package:fuoday/features/hr/domain/usecase/get_hr_overview.dart';
 import 'package:fuoday/features/hr/presentation/provider/hr_overview_provider.dart';
+import 'package:fuoday/features/leave_tracker/data/datasources/leave_regulation_remote_data_source.dart';
 import 'package:fuoday/features/leave_tracker/data/datasources/leave_remote_data_source.dart';
 import 'package:fuoday/features/leave_tracker/data/datasources/leave_tracker_chart_remote_data_source.dart';
+import 'package:fuoday/features/leave_tracker/data/repository/leave_regulation_repository_impl.dart';
 import 'package:fuoday/features/leave_tracker/data/repository/leave_repository_impl.dart';
 import 'package:fuoday/features/leave_tracker/data/repository/leave_tracker_chart_repository_impl.dart';
+import 'package:fuoday/features/leave_tracker/domain/repository/leave_regulation_repository.dart';
 import 'package:fuoday/features/leave_tracker/domain/repository/leave_repository.dart';
 import 'package:fuoday/features/leave_tracker/domain/repository/leave_tracker_chart_repository.dart';
 import 'package:fuoday/features/leave_tracker/domain/usecase/get_leave_summary_usecase.dart';
 import 'package:fuoday/features/leave_tracker/domain/usecase/get_leave_tracker_chart_usecase.dart';
+import 'package:fuoday/features/leave_tracker/domain/usecase/submit_leave_regulation_usecase.dart';
+import 'package:fuoday/features/leave_tracker/presentation/providers/leave_regulation_provider.dart';
 import 'package:fuoday/features/management/data/datasources/emp_audit_form_datasource.dart';
 import 'package:fuoday/features/management/data/repository/emp_audit_form_repository_impl.dart';
 import 'package:fuoday/features/management/domain/repository/emp_audit_form_repository.dart';
@@ -114,18 +119,23 @@ import 'package:fuoday/features/payslip/domain/usecase/get_payroll_overview_usec
 import 'package:fuoday/features/payslip/domain/usecase/get_payroll_usecase.dart';
 import 'package:fuoday/features/payslip/presentation/Provider/payroll_overview_provider.dart';
 import 'package:fuoday/features/payslip/presentation/Provider/payroll_provider.dart';
+import 'package:fuoday/features/performance/data/datasources/remote/audit_reporting_team_remote_datasource.dart';
 import 'package:fuoday/features/performance/data/datasources/remote/employee_audit_form_remote_data_source.dart';
 import 'package:fuoday/features/performance/data/datasources/remote/employee_audit_remote_data_source.dart';
 import 'package:fuoday/features/performance/data/datasources/remote/performance_summary_remote_data_source.dart';
+import 'package:fuoday/features/performance/data/repository/audit_reporting_team_repository_impl.dart';
 import 'package:fuoday/features/performance/data/repository/employee_audit_form_repository_impl.dart';
 import 'package:fuoday/features/performance/data/repository/employee_audit_repository_impl.dart';
 import 'package:fuoday/features/performance/data/repository/performance_summary_repository_impl.dart';
+import 'package:fuoday/features/performance/domain/repository/audit_reporting_team_repository.dart';
 import 'package:fuoday/features/performance/domain/repository/employee_audit_form_repository.dart';
 import 'package:fuoday/features/performance/domain/repository/employee_audit_repository.dart';
 import 'package:fuoday/features/performance/domain/repository/performance_summary_repository.dart';
+import 'package:fuoday/features/performance/domain/usecases/get_audit_reporting_team_usecase.dart';
 import 'package:fuoday/features/performance/domain/usecases/get_employee_audit_use_case.dart';
 import 'package:fuoday/features/performance/domain/usecases/get_performance_summary_use_case.dart';
 import 'package:fuoday/features/performance/domain/usecases/post_employee_audit_form_use_case.dart';
+import 'package:fuoday/features/performance/presentation/providers/audit_reporting_team_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_form_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/performance_summary_provider.dart';
@@ -780,32 +790,33 @@ void setUpServiceLocator() {
     ),
   );
 
-  // Total Punctual Arrival Details Provider
-  getIt.registerLazySingleton<TotalPunctualArrivalDetailsRemoteDataSource>(
-    () => TotalPunctualArrivalDetailsRemoteDataSource(
-      dioService: getIt<DioService>(),
-    ),
+  // Data sources
+  getIt.registerLazySingleton<AttendanceRemoteDataSource>(
+          () => AttendanceRemoteDataSourceImpl(dioService: getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<AttendanceRepository>(
+        () => AttendanceRepositoryImpl(remoteDataSource: getIt()),
   );
 
-  getIt.registerLazySingleton<TotalPunctualDetailsRepository>(
-    () => TotalPunctualDetailsRepositoryImpl(
-      totalPunctualArrivalDetailsRemoteDataSource:
-          getIt<TotalPunctualArrivalDetailsRemoteDataSource>(),
-    ),
-  );
-
+  // Use cases
   getIt.registerLazySingleton<GetTotalPunctualArrivalsDetailsUseCase>(
-    () => GetTotalPunctualArrivalsDetailsUseCase(
-      totalPunctualDetailsRepository: getIt<TotalPunctualDetailsRepository>(),
+        () => GetTotalPunctualArrivalsDetailsUseCase(repository: getIt()),
+  );
+
+  // Providers
+  getIt.registerFactory<TotalPunctualArrivalDetailsProvider>(
+        () => TotalPunctualArrivalDetailsProvider(
+      getTotalPunctualArrivalsDetailsUseCase: getIt(),
     ),
   );
 
-  getIt.registerFactory<TotalPunctualArrivalDetailsProvider>(
-    () => TotalPunctualArrivalDetailsProvider(
-      getTotalPunctualArrivalsDetailsUseCase:
-          getIt<GetTotalPunctualArrivalsDetailsUseCase>(),
-    ),
-  );
+  // getIt.registerFactory<TotalPunctualArrivalDetailsProvider>(
+  //   () => TotalPunctualArrivalDetailsProvider(
+  //     getTotalPunctualArrivalsDetailsUseCase:
+  //         getIt<GetTotalPunctualArrivalsDetailsUseCase>(),
+  //   ),
+  // );
 
   //create ticket
   getIt.registerLazySingleton(
@@ -993,4 +1004,44 @@ void setUpServiceLocator() {
   getIt.registerFactory(
         () => EmpAuditFormProvider(getIt()),
   );
+
+
+  // leave regulation
+  // Data source
+  getIt.registerLazySingleton<LeaveRegulationRemoteDataSource>(
+        () => LeaveRegulationRemoteDataSourceImpl(getIt<DioService>()),
+  );
+
+  // Repository
+  getIt.registerLazySingleton<LeaveRegulationRepository>(
+        () => LeaveRegulationRepositoryImpl(getIt()),
+  );
+
+  // Use case
+  getIt.registerLazySingleton(
+        () => SubmitLeaveRegulationUseCase(getIt()),
+  );
+  getIt.registerFactory(
+        () => LeaveRegulationProvider(getIt()),
+  );
+
+  //get audit form emp list
+  // Data Source
+  getIt.registerLazySingleton<AuditReportingTeamRemoteDataSource>(
+          () => AuditReportingTeamRemoteDataSourceImpl(getIt<DioService>()),
+  );
+  // Repository
+      getIt.registerLazySingleton<AuditReportingTeamRepository>(
+          () => AuditReportingTeamRepositoryImpl(getIt()));
+
+  // Usecase
+  getIt.registerLazySingleton(() => GetAuditReportingTeamUseCase(getIt()));
+
+  // Provider
+  getIt.registerFactory(
+        () => AuditReportingTeamProvider(
+      getAuditReportingTeamUseCase: getIt<GetAuditReportingTeamUseCase>(),
+    ),
+  );
+
 }

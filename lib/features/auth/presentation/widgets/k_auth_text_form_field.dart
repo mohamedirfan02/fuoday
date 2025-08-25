@@ -18,6 +18,8 @@ class KAuthTextFormField extends StatelessWidget {
   final Color? labelColor;
   final double? labelFontSize;
   final FontWeight? labelFontWeight;
+  final ValueChanged<String>? onChanged; // 👈 add this
+
 
   const KAuthTextFormField({
     super.key,
@@ -35,6 +37,8 @@ class KAuthTextFormField extends StatelessWidget {
     this.labelColor,
     this.labelFontSize,
     this.labelFontWeight,
+    this.onChanged, // 👈 add this
+
   });
 
   @override

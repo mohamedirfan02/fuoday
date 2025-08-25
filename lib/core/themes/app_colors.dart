@@ -45,6 +45,8 @@ class AppColors {
   // auth TextField Colors
   static const Color authTextFieldSuffixIconColor = Color(0xFFC1B1B1);
   static const Color authUnderlineBorderColor = Color(0xFFC1B1B1);
+  static const Color softRed = Color(0xFFEF5350);
+
 
   // Text Btn Color
   static const Color textBtnColor = Color(0xFF3342FD);

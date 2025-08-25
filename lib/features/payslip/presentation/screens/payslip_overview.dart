@@ -40,7 +40,11 @@ class _PayslipOverviewState extends State<PayslipOverview> {
       );
     }
 
-    final payroll = payrollProvider.payrollOverview!;
+    final payroll = payrollProvider.payrollOverview;
+    if (payroll == null) {
+      return const Center(child: Text("No payroll data available"));
+    }
+
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -56,7 +60,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             isReadOnly: true,
             suffixIcon: Icons.person_outline,
           ),
-
+          SizedBox(height: 8.h),
           // Employee ID
           KAuthTextFormField(
             label: "Employee ID",
@@ -64,6 +68,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             isReadOnly: true,
             suffixIcon: Icons.badge_outlined,
           ),
+          SizedBox(height: 8.h),
 
           // Designation
           KAuthTextFormField(
@@ -72,6 +77,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             isReadOnly: true,
             suffixIcon: Icons.school_outlined,
           ),
+          SizedBox(height: 8.h),
 
           // Date of Joining
           KAuthTextFormField(
@@ -80,22 +86,25 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             isReadOnly: true,
             suffixIcon: Icons.calendar_month_outlined,
           ),
+          SizedBox(height: 8.h),
 
-          // Pay Period (Month from payslip)
+          // Pay Period (Month from payslip) - Handle null
           KAuthTextFormField(
             label: "Pay Period",
-            hintText: payroll.payslip.month,
+            hintText: payroll.payslip.month ?? "Not Available",
             isReadOnly: true,
             suffixIcon: Icons.calendar_month_outlined,
           ),
+          SizedBox(height: 8.h),
 
-          // Pay Date
+          // Pay Date - Handle null
           KAuthTextFormField(
             label: "Pay Date",
-            hintText: payroll.payslip.date,
+            hintText: payroll.payslip.date ?? "Not Available",
             isReadOnly: true,
             suffixIcon: Icons.calendar_month_outlined,
           ),
+          SizedBox(height: 8.h),
 
           // PF Account Number
           KAuthTextFormField(
@@ -104,6 +113,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             isReadOnly: true,
             suffixIcon: Icons.payment,
           ),
+          SizedBox(height: 8.h),
 
           // UAN Number
           KAuthTextFormField(
@@ -112,6 +122,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             isReadOnly: true,
             suffixIcon: Icons.payment,
           ),
+          SizedBox(height: 8.h),
 
           // ESI Number
           KAuthTextFormField(
@@ -134,12 +145,12 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             ),
             child: Column(
               children: [
-                // Month row
+                // Month row - Handle null
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     KText(text: "Month", fontWeight: FontWeight.w600, fontSize: 12.sp),
-                    KText(text: payroll.payslip.month, fontWeight: FontWeight.w600, fontSize: 12.sp),
+                    KText(text: payroll.payslip.month ?? "Not Available", fontWeight: FontWeight.w600, fontSize: 12.sp),
                   ],
                 ),
                 SizedBox(height: 8.h),
@@ -166,7 +177,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
           ),
 
           SizedBox(height: 20.h),
-// Deductions Section styled like Total Payable
+          // Deductions Section styled like Total Payable
           KText(text: "Deductions", fontWeight: FontWeight.w600, fontSize: 14.sp),
 
           SizedBox(height: 10.h),
@@ -178,12 +189,12 @@ class _PayslipOverviewState extends State<PayslipOverview> {
             ),
             child: Column(
               children: [
-                // Month row
+                // Month row - Handle null
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     KText(text: "Month", fontWeight: FontWeight.w600, fontSize: 12.sp),
-                    KText(text: payroll.payslip.month, fontWeight: FontWeight.w600, fontSize: 12.sp),
+                    KText(text: payroll.payslip.month ?? "Not Available", fontWeight: FontWeight.w600, fontSize: 12.sp),
                   ],
                 ),
                 SizedBox(height: 8.h),
@@ -225,7 +236,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     KText(text: "Month", fontWeight: FontWeight.w600, fontSize: 12.sp),
-                    KText(text: payroll.payslip.month,fontWeight: FontWeight.w600, fontSize: 12.sp),
+                    KText(text: payroll.payslip.month ?? "Not Available", fontWeight: FontWeight.w600, fontSize: 12.sp),
                   ],
                 ),
                 SizedBox(height: 8.h),
@@ -233,7 +244,7 @@ class _PayslipOverviewState extends State<PayslipOverview> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     KText(text: "Total Salary", fontWeight: FontWeight.w600, fontSize: 12.sp,),
-                    KText(text: payroll.payslip.totalSalary.toString(),fontWeight: FontWeight.w600, fontSize: 12.sp),
+                    KText(text: payroll.payslip.totalSalary.toString(), fontWeight: FontWeight.w600, fontSize: 12.sp),
                   ],
                 ),
                 SizedBox(height: 8.h),
@@ -247,7 +258,6 @@ class _PayslipOverviewState extends State<PayslipOverview> {
               ],
             ),
           ),
-
 
           SizedBox(height: 60.h),
         ],

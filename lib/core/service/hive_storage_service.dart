@@ -71,6 +71,9 @@ class HiveStorageService {
     required String profilePhoto,
     required String userName,
     required String webUserId,
+    String? id, // Added id parameter
+    String? logo, // Added logo parameter
+    String? checkin, // Added checkin parameter
   }) async {
     final employeeData = {
       "role": role,
@@ -80,6 +83,9 @@ class HiveStorageService {
       "profilePhoto": profilePhoto,
       "name": userName,
       "web_user_id": webUserId,
+      "id": id, // Store id
+      "logo": logo, // Store logo
+      "checkin": checkin, // Store checkin
     };
 
     await _employeeDetailsBox.put(
@@ -99,6 +105,8 @@ class HiveStorageService {
     required String userName,
     required String webUserId,
     required String logo,
+    required String checkin,
+    String? id, // Added id parameter
   }) async {
     final instance = HiveStorageService();
     await instance.setEmployeeDetails(
@@ -109,6 +117,9 @@ class HiveStorageService {
       profilePhoto: profilePhoto,
       userName: userName,
       webUserId: webUserId,
+      id: id, // Pass id
+      logo: logo, // Pass logo
+      checkin: checkin,
     );
   }
 

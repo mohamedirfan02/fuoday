@@ -27,6 +27,7 @@ class HomeFeedsProjectDataModel {
 }
 
 class HomeFeedItem {
+  final int id; // ✅ Add this
   final String date;
   final String description;
   final String assignedBy;
@@ -34,8 +35,11 @@ class HomeFeedItem {
   final String projectName;
   final String progress;
   final String deadline;
+  final String comment;        // ✅ new
+  final String progressNote;   // ✅ new
 
   HomeFeedItem({
+    required this.id, // ✅ include in constructor
     required this.date,
     required this.description,
     required this.assignedBy,
@@ -43,29 +47,37 @@ class HomeFeedItem {
     required this.projectName,
     required this.progress,
     required this.deadline,
+    required this.comment,       // ✅
+    required this.progressNote,  // ✅
   });
 
   factory HomeFeedItem.fromJson(Map<String, dynamic> json) {
     return HomeFeedItem(
+      id: json['id'] ?? 0, // ✅ parse id from API
       date: json['date'] ?? '',
       description: json['description'] ?? '',
       assignedBy: json['assigned_by'] ?? '',
       assignedTo: json['assigned_to'] ?? '',
-      projectName: json['project_name'] ?? '',
-      progress: json['progress'] ?? '',
+      projectName: json['project'] ?? '',
+      progress: json['status'] ?? '',
       deadline: json['deadline'] ?? '',
+      comment: json['comment'] ?? '',               // ✅
+      progressNote: json['progress_note'] ?? '',    // ✅
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id, // ✅ include when serializing
       'date': date,
       'description': description,
       'assigned_by': assignedBy,
       'assigned_to': assignedTo,
       'project_name': projectName,
-      'progress': progress,
+      'status': progress,
       'deadline': deadline,
+      'comment': comment,            // ✅
+      'progress_note': progressNote, // ✅
     };
   }
 }

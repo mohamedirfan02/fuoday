@@ -33,13 +33,21 @@ class KAppBarWithDrawer extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: !showUserInfo,
       // Center title only when user info is not shown
       actions: [
-        IconButton(
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-            onNotificationPressed();
-          },
-          icon: Icon(Icons.notifications, color: AppColors.secondaryColor),
+        Builder(
+          builder: (ctx) => IconButton(
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                const SnackBar(
+                  content: Text("It will be added in a future update"),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: Icon(Icons.notifications, color: AppColors.secondaryColor),
+          ),
         ),
+
       ],
       backgroundColor: backgroundColor ?? AppColors.primaryColor,
       leading: IconButton(

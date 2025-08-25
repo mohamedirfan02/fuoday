@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fuoday/commons/widgets/k_app_bar.dart';
+import 'package:fuoday/commons/widgets/k_data_table.dart';
 import 'package:fuoday/commons/widgets/k_download_options_bottom_sheet.dart';
 import 'package:fuoday/commons/widgets/k_text.dart';
 import 'package:fuoday/commons/widgets/k_vertical_spacer.dart';
 import 'package:fuoday/core/di/injection.dart';
 import 'package:fuoday/core/extensions/provider_extension.dart';
+import 'package:fuoday/core/service/excel_generator_service.dart';
 import 'package:fuoday/core/service/hive_storage_service.dart';
+import 'package:fuoday/core/service/pdf_generator_service.dart';
 import 'package:fuoday/core/themes/app_colors.dart';
 import 'package:fuoday/features/attendance/presentation/providers/total_punctual_arrivals_details_provider.dart';
 import 'package:fuoday/features/attendance/presentation/widgets/attendance_message_content.dart';
@@ -14,7 +17,7 @@ import 'package:fuoday/features/attendance/presentation/widgets/attendance_punct
 import 'package:fuoday/features/auth/presentation/widgets/k_auth_filled_btn.dart';
 import 'package:fuoday/features/auth/presentation/widgets/k_auth_text_form_field.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class AttendancePunctualArrivalDetailsScreen extends StatefulWidget {
   const AttendancePunctualArrivalDetailsScreen({super.key});
@@ -63,62 +66,68 @@ class _AttendancePunctualArrivalDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Providers
-    final provider = Provider.of<TotalPunctualArrivalDetailsProvider>(context);
-    print('Punctual records: ${provider.details?.data?.punctualArrivalsDetails?.length}');
+    final provider = context.totalPunctualArrivalDetailsProviderWatch;
+    final details = provider.details?.data;
+    final isLoading = provider.isLoading;
+    final error = provider.error;
 
-    // Your card data list
-    final List<Map<String, String>> punctualData = [
+    // Cards
+    final punctualData = [
       {
-        'count':
-            '${provider.details?.data?.punctualArrivalsDetails?.length ?? 0}',
+        'count': '${details?.punctualArrivalsDetails?.length ?? 0}',
         'label': 'Total Punctual Days',
       },
       {
-        'count': '${provider.details?.data?.punctualArrivalPercentage}%',
+        'count': '${details?.punctualArrivalPercentage ?? 0}%',
         'label': 'Punctual Percentage',
       },
     ];
 
-    // Select Date
-    Future<void> selectDate(
-      BuildContext context,
-      TextEditingController controller,
-    ) async {
-      final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2101),
-        initialDatePickerMode: DatePickerMode.day,
-        helpText: 'Select Date',
-        builder: (context, child) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(
-                primary: AppColors.primaryColor,
-                onPrimary: AppColors.secondaryColor,
-                onSurface: AppColors.titleColor,
-              ),
-            ),
-            child: child!,
-          );
-        },
-      );
+    // Table columns
+    final columns = [
+      'S.No',
+      'Date',
+      'Day',
+      'Log on',
+      'Punctual Time',
+      'Status',
+    ];
 
-      if (picked != null) {
-        controller.text = "${picked.day}/${picked.month}/${picked.year}";
-      }
-    }
+    // Table rows
+    final data =
+    (details?.punctualArrivalsDetails ?? []).asMap().entries.map((entry) {
+      final index = entry.key + 1;
+      final record = entry.value;
+
+      final dateObj = DateTime.tryParse(record.date ?? "");
+      final day = dateObj != null
+          ? [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ][dateObj.weekday % 7]
+          : '-';
+
+      return {
+        'S.No': '$index',
+        'Date': record.date ?? '-',
+        'Day': day,
+        'Log on': record.checkinTime ?? '-',
+        'Punctual Time': record.punctualTime ?? '-', // if you have checkout
+        'Status': record.currentStatus ?? '-',
+      };
+    }).toList();
 
     return Scaffold(
       appBar: KAppBar(
         title: "Punctual Arrival Details",
         centerTitle: true,
         leadingIcon: Icons.arrow_back,
-        onLeadingIconPress: () {
-          GoRouter.of(context).pop();
-        },
+        onLeadingIconPress: () => GoRouter.of(context).pop(),
       ),
       bottomSheet: Container(
         height: 60.h,
@@ -141,13 +150,24 @@ class _AttendancePunctualArrivalDetailsScreenState
                 ),
                 builder: (context) {
                   return KDownloadOptionsBottomSheet(
-                    onPdfTap: () {
-                      Navigator.pop(context);
-                      // Implement PDF download logic here
+                    onPdfTap: () async {
+                      final pdfService = getIt<PdfGeneratorService>();
+                      final pdfFile = await pdfService.generateAndSavePdf(
+                        data: data,
+                        columns: columns,
+                        title: 'Total Punctual Arrival Report',
+                        filename: 'punctual_arrival_report.pdf',
+                      );
+                      await OpenFilex.open(pdfFile.path);
                     },
-                    onExcelTap: () {
-                      Navigator.pop(context);
-                      // Implement Excel download logic here
+                    onExcelTap: () async {
+                      final excelService = getIt<ExcelGeneratorService>();
+                      final excelFile = await excelService.generateAndSaveExcel(
+                        data: data,
+                        columns: List<String>.from(columns),
+                        filename: 'Punctual Arrival Report.xlsx',
+                      );
+                      await OpenFilex.open(excelFile.path);
                     },
                   );
                 },
@@ -158,25 +178,22 @@ class _AttendancePunctualArrivalDetailsScreenState
         ),
       ),
       body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
         physics: const BouncingScrollPhysics(),
         child: Container(
           margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               // Cards
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                // use parent scroll
                 itemCount: punctualData.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 cards per row
+                  crossAxisCount: 2,
                   mainAxisSpacing: 12.h,
                   crossAxisSpacing: 12.w,
-                  childAspectRatio: 1.2, // adjust for card height/width
+                  childAspectRatio: 1.2,
                 ),
                 itemBuilder: (context, index) {
                   final item = punctualData[index];
@@ -187,9 +204,9 @@ class _AttendancePunctualArrivalDetailsScreenState
                 },
               ),
 
-              KVerticalSpacer(height: 10.h),
+              KVerticalSpacer(height: 20.h),
 
-              // Filter & Search Options
+              // Filter options
               KText(
                 text: "Filter & Search Options",
                 fontWeight: FontWeight.w600,
@@ -198,7 +215,6 @@ class _AttendancePunctualArrivalDetailsScreenState
 
               KVerticalSpacer(height: 12.h),
 
-              // Search Text Form Field
               KAuthTextFormField(
                 hintText: "Search by data",
                 keyboardType: TextInputType.text,
@@ -207,31 +223,21 @@ class _AttendancePunctualArrivalDetailsScreenState
 
               KVerticalSpacer(height: 12.h),
 
-              // Start End Date TextFormField
               Row(
                 spacing: 20.w,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Start Date
                   Expanded(
                     child: KAuthTextFormField(
-                      onTap: () {
-                        selectDate(context, startDateController);
-                      },
+                      onTap: () => _selectDate(context, startDateController),
                       controller: startDateController,
                       hintText: "Start Date",
                       keyboardType: TextInputType.datetime,
                       suffixIcon: Icons.date_range,
                     ),
                   ),
-
-                  // End Date
                   Expanded(
                     child: KAuthTextFormField(
-                      onTap: () async {
-                        selectDate(context, endDateController);
-                      },
+                      onTap: () => _selectDate(context, endDateController),
                       controller: endDateController,
                       hintText: "End Date",
                       keyboardType: TextInputType.datetime,
@@ -243,58 +249,57 @@ class _AttendancePunctualArrivalDetailsScreenState
 
               KVerticalSpacer(height: 40.h),
 
-              KVerticalSpacer(height: 40.h),
-
-              if ((provider.details?.data?.punctualArrivalsDetails?.isNotEmpty ?? false))
-              // ✅ Show list of punctual arrivals
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: provider.details!.data!.punctualArrivalsDetails!.length,
-                  itemBuilder: (context, index) {
-                    final detail = provider.details!.data!.punctualArrivalsDetails![index];
-                    return Card(
-                      child: ListTile(
-                        title: Text(detail.empName ?? "-"),
-                        subtitle: Text("Date: ${detail.date} | Check-in: ${detail.checkinTime}"),
-                        trailing: Text(detail.currentStatus ?? ""),
-                      ),
-                    );
-                  },
-                )
-              else
-              // ❌ Show "No Data" message
-                Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    spacing: 10.h,
-                    children: [
-                      KText(
-                        text: "No Punctual Arrivals",
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14.sp,
-                        color: AppColors.titleColor,
-                      ),
-                      KText(
-                        text: "No punctual arrivals found for your account. Keep arriving on time!",
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12.sp,
-                        color: AppColors.greyColor,
-                        textAlign: TextAlign.center,
-                      ),
-                      AttendanceMessageContent(
-                        messageContentTitle: "Performance: High",
-                        messageContentSubTitle:
-                        "You arrive mostly on time, consider arriving a few minutes early to be better prepared",
-                      ),
-                    ],
+              if (isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (error != null)
+                Center(child: Text(error))
+              else if (data.isEmpty)
+                  const Center(child: Text('No punctual arrival records found'))
+                else
+                  SizedBox(
+                    height: 200.h,
+                    child: KDataTable(columnTitles: columns, rowData: data),
                   ),
-                ),
 
+              KVerticalSpacer(height: 20.h),
+
+              AttendanceMessageContent(
+                messageContentTitle: "Performance: High",
+                messageContentSubTitle:
+                "You arrive mostly on time, consider arriving a few minutes early to be better prepared",
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _selectDate(
+      BuildContext context,
+      TextEditingController controller,
+      ) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primaryColor,
+              onPrimary: AppColors.secondaryColor,
+              onSurface: AppColors.titleColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      controller.text = "${picked.day}/${picked.month}/${picked.year}";
+    }
   }
 }

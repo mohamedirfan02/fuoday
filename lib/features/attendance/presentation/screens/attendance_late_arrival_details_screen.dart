@@ -33,6 +33,11 @@ class _AttendanceLateArrivalDetailsScreenState
   final TextEditingController startDateController = TextEditingController();
   final TextEditingController endDateController = TextEditingController();
 
+  // Filter variables
+  DateTime? startDate;
+  DateTime? endDate;
+  String searchQuery = '';
+
   // Service
   late final HiveStorageService hiveService;
   late final Map<String, dynamic>? employeeDetails;
@@ -46,6 +51,13 @@ class _AttendanceLateArrivalDetailsScreenState
     name = employeeDetails?['name'] ?? "No Name";
     webUserId =
         int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '') ?? 0;
+
+    // Add listeners for real-time filtering
+    searchController.addListener(() {
+      setState(() {
+        searchQuery = searchController.text.toLowerCase();
+      });
+    });
 
     Future.microtask(() {
       context.totalLateArrivalsDetailsProviderRead.fetchLateArrivalDetails(
@@ -62,6 +74,92 @@ class _AttendanceLateArrivalDetailsScreenState
     startDateController.dispose();
     endDateController.dispose();
     super.dispose();
+  }
+
+  // Method to filter data based on search and date range
+  List<Map<String, String>> getFilteredData(List<Map<String, String>> allData) {
+    List<Map<String, String>> filtered = List.from(allData);
+
+    // Apply search filter
+    if (searchQuery.isNotEmpty) {
+      filtered = filtered.where((row) {
+        return row.values.any((value) =>
+            value.toLowerCase().contains(searchQuery)
+        );
+      }).toList();
+    }
+
+    // Apply date range filter
+    if (startDate != null || endDate != null) {
+      filtered = filtered.where((row) {
+        final dateString = row['Date'] ?? '';
+        if (dateString == '-' || dateString.isEmpty) return false;
+
+        try {
+          final recordDate = DateTime.tryParse(dateString);
+          if (recordDate == null) return false;
+
+          // Check if date is within range
+          if (startDate != null && recordDate.isBefore(startDate!)) {
+            return false;
+          }
+          if (endDate != null && recordDate.isAfter(endDate!)) {
+            return false;
+          }
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    }
+
+    return filtered;
+  }
+
+  // Method to re-index filtered data
+  List<Map<String, String>> reindexData(List<Map<String, String>> data) {
+    return data.asMap().entries.map((entry) {
+      final newIndex = entry.key + 1;
+      final row = Map<String, String>.from(entry.value);
+      row['S.No'] = '$newIndex';
+      return row;
+    }).toList();
+  }
+
+  // Method to get filename suffix based on filters
+  String getFilenameSuffix() {
+    List<String> suffixParts = [];
+
+    if (startDate != null && endDate != null) {
+      suffixParts.add('${startDate!.day}-${startDate!.month}-${startDate!.year}_to_${endDate!.day}-${endDate!.month}-${endDate!.year}');
+    } else if (startDate != null) {
+      suffixParts.add('from_${startDate!.day}-${startDate!.month}-${startDate!.year}');
+    } else if (endDate != null) {
+      suffixParts.add('until_${endDate!.day}-${endDate!.month}-${endDate!.year}');
+    }
+
+    if (searchQuery.isNotEmpty) {
+      suffixParts.add('search_${searchQuery.replaceAll(' ', '_')}');
+    }
+
+    return suffixParts.isNotEmpty ? '_${suffixParts.join('_')}' : '';
+  }
+
+  // Method to clear all filters
+  void clearFilters() {
+    setState(() {
+      searchController.clear();
+      startDateController.clear();
+      endDateController.clear();
+      startDate = null;
+      endDate = null;
+      searchQuery = '';
+    });
+  }
+
+  // Check if any filters are active
+  bool get hasActiveFilters {
+    return searchQuery.isNotEmpty || startDate != null || endDate != null;
   }
 
   @override
@@ -98,29 +196,29 @@ class _AttendanceLateArrivalDetailsScreenState
       'Date',
       'Day',
       'Log on',
-      'Log off',
-      'Worked hours',
+      'Late Minute',
+      'Late Duration',
       'Status',
     ];
 
-    // Table data mapping
-    final data = (details?.lateArrivalsDetails ?? []).asMap().entries.map((
-      entry,
-    ) {
+    // All table data (unfiltered)
+    final allData = (details?.lateArrivalsDetails ?? []).asMap().entries.map((
+        entry,
+        ) {
       final index = entry.key + 1;
       final record = entry.value;
 
       final dateObj = DateTime.tryParse(record.date);
       final day = dateObj != null
           ? [
-              "Sunday",
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-            ][dateObj.weekday % 7]
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ][dateObj.weekday % 7]
           : '-';
 
       return {
@@ -128,11 +226,15 @@ class _AttendanceLateArrivalDetailsScreenState
         'Date': record.date,
         'Day': day,
         'Log on': record.checkinTime,
-        'Log off': '-',
-        'Worked hours': '-',
+        'Late Minute': record.minutesLate.toString() ?? '-',
+        'Late Duration': record.hoursMinutesLate ?? '-',
         'Status': record.currentStatus,
       };
     }).toList();
+
+    // Apply filters and re-index
+    final filteredData = getFilteredData(allData);
+    final displayData = reindexData(filteredData);
 
     return Scaffold(
       appBar: KAppBar(
@@ -151,8 +253,8 @@ class _AttendanceLateArrivalDetailsScreenState
             backgroundColor: AppColors.primaryColor,
             height: 24.h,
             width: double.infinity,
-            text: "Download",
-            onPressed: () {
+            text: displayData.isEmpty ? "No Data to Download" : "Download",
+            onPressed:  () {
               showModalBottomSheet(
                 context: context,
                 shape: RoundedRectangleBorder(
@@ -163,31 +265,33 @@ class _AttendanceLateArrivalDetailsScreenState
                 builder: (context) {
                   return KDownloadOptionsBottomSheet(
                     onPdfTap: () async {
-                      // Pdf service
                       final pdfService = getIt<PdfGeneratorService>();
+                      final suffix = getFilenameSuffix();
 
-                      // Generating
+                      String reportTitle = 'Late Arrival Report';
+                      if (hasActiveFilters) {
+                        reportTitle += ' (Filtered)';
+                      }
+
                       final pdfFile = await pdfService.generateAndSavePdf(
-                        data: data,
-                        columns: List<String>.from(columns),
-                        title: 'Total late arrival Report',
+                        data: displayData,
+                        columns: columns,
+                        title: reportTitle,
+                        filename: 'late_arrival_report$suffix.pdf',
                       );
 
-                      // Open a PDF File
                       await OpenFilex.open(pdfFile.path);
                     },
                     onExcelTap: () async {
-                      // Excel Service
                       final excelService = getIt<ExcelGeneratorService>();
+                      final suffix = getFilenameSuffix();
 
-                      // Implement Excel logic
                       final excelFile = await excelService.generateAndSaveExcel(
-                        data: data,
-                        columns: List<String>.from(columns),   // 👈 add this
-                        filename: 'Total late arrival Report.xlsx',
+                        data: displayData,
+                        columns: List<String>.from(columns),
+                        filename: 'late_arrival_report$suffix.xlsx',
                       );
 
-                      // Open a Excel File
                       await OpenFilex.open(excelFile.path);
                     },
                   );
@@ -227,16 +331,52 @@ class _AttendanceLateArrivalDetailsScreenState
 
               KVerticalSpacer(height: 10.h),
 
-              KText(
-                text: "Filter & Search Options",
-                fontWeight: FontWeight.w600,
-                fontSize: 14.sp,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  KText(
+                    text: "Filter & Search Options",
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14.sp,
+                  ),
+                  if (hasActiveFilters)
+                    GestureDetector(
+                      onTap: clearFilters,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.clear,
+                              size: 12.sp,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              'Clear All',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
 
               KVerticalSpacer(height: 12.h),
 
               KAuthTextFormField(
-                hintText: "Search by data",
+                controller: searchController,
+                hintText: "Search by date, day, status, etc...",
                 keyboardType: TextInputType.text,
                 suffixIcon: Icons.search,
               ),
@@ -248,7 +388,7 @@ class _AttendanceLateArrivalDetailsScreenState
                 children: [
                   Expanded(
                     child: KAuthTextFormField(
-                      onTap: () => _selectDate(context, startDateController),
+                      onTap: () => _selectDate(context, startDateController, true),
                       controller: startDateController,
                       hintText: "Start Date",
                       keyboardType: TextInputType.datetime,
@@ -257,7 +397,7 @@ class _AttendanceLateArrivalDetailsScreenState
                   ),
                   Expanded(
                     child: KAuthTextFormField(
-                      onTap: () => _selectDate(context, endDateController),
+                      onTap: () => _selectDate(context, endDateController, false),
                       controller: endDateController,
                       hintText: "End Date",
                       keyboardType: TextInputType.datetime,
@@ -267,26 +407,106 @@ class _AttendanceLateArrivalDetailsScreenState
                 ],
               ),
 
+              // Show active filters info
+              if (hasActiveFilters) ...[
+                KVerticalSpacer(height: 10.h),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.filter_alt, size: 16.sp, color: AppColors.primaryColor),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Active Filters (${displayData.length} of ${allData.length} records):',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (searchQuery.isNotEmpty) ...[
+                        SizedBox(height: 4.h),
+                        Text(
+                          '• Search: "$searchQuery"',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: AppColors.primaryColor.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                      if (startDate != null || endDate != null) ...[
+                        SizedBox(height: 4.h),
+                        Text(
+                          '• Date Range: ${startDate != null ? "${startDate!.day}/${startDate!.month}/${startDate!.year}" : "Any"} to ${endDate != null ? "${endDate!.day}/${endDate!.month}/${endDate!.year}" : "Any"}',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: AppColors.primaryColor.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+
               KVerticalSpacer(height: 40.h),
 
               if (isLoading)
                 const Center(child: CircularProgressIndicator())
               else if (error != null)
                 Center(child: Text(error))
-              else if (data.isEmpty)
-                const Center(child: Text('No late arrival records found'))
-              else
-                SizedBox(
-                  height: 200.h,
-                  child: KDataTable(columnTitles: columns, rowData: data),
-                ),
-
-              KVerticalSpacer(height: 20.h),
+              else if (allData.isEmpty)
+                  const Center(child: Text('No late arrival records found'))
+                else if (displayData.isEmpty && hasActiveFilters)
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 48.sp,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'No records match your filters',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          TextButton(
+                            onPressed: clearFilters,
+                            child: Text(
+                              'Clear filters to show all records',
+                              style: TextStyle(
+                                color: AppColors.primaryColor,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      height: 600.h,
+                      child: KDataTable(columnTitles: columns, rowData: displayData),
+                    ),
 
               AttendanceMessageContent(
                 messageContentTitle: "Performance: High",
                 messageContentSubTitle:
-                    "You arrive mostly on time, consider arriving a few minutes early to be better prepared",
+                "You arrive mostly on time, consider arriving a few minutes early to be better prepared",
               ),
             ],
           ),
@@ -296,9 +516,10 @@ class _AttendanceLateArrivalDetailsScreenState
   }
 
   Future<void> _selectDate(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
+      BuildContext context,
+      TextEditingController controller,
+      bool isStartDate,
+      ) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -319,6 +540,23 @@ class _AttendanceLateArrivalDetailsScreenState
     );
 
     if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          startDate = picked;
+          // If end date is before start date, clear it
+          if (endDate != null && endDate!.isBefore(picked)) {
+            endDate = null;
+            endDateController.clear();
+          }
+        } else {
+          endDate = picked;
+          // If start date is after end date, clear it
+          if (startDate != null && startDate!.isAfter(picked)) {
+            startDate = null;
+            startDateController.clear();
+          }
+        }
+      });
       controller.text = "${picked.day}/${picked.month}/${picked.year}";
     }
   }

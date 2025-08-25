@@ -41,16 +41,6 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
   @override
   Widget build(BuildContext context) {
-    // // Internet Checker Provider
-    // final internetCheckerProvider = context.appInternetCheckerProviderWatch;
-    //
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (!internetCheckerProvider.isNetworkConnected) {
-    //     KSnackBar.failure(context, "No Internet Connection");
-    //   } else {
-    //     KSnackBar.success(context, "Internet Connection Available");
-    //   }
-    // });
 
     // Total Attendance Provider
     final totalAttendanceDetailsProvider =
@@ -92,14 +82,6 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Chart
-          // SizedBox(
-          //   height: 340.h,
-          //   child: AttendanceLineChart(
-          //     attendanceValues: attendanceData,
-          //     months: months,
-          //   ),
-          // ),
           KVerticalSpacer(height: 20.h),
 
           // Attendance Tiles
@@ -152,7 +134,7 @@ class _AttendanceHistoryState extends State<AttendanceHistory> {
 
           // Data Table
           SizedBox(
-            height: 400.h,
+            height: 600.h,
             child: KDataTable(columnTitles: columns, rowData: data),
           ),
         ],

@@ -39,6 +39,12 @@ class _TimeTrackerScreenState extends State<TimeTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final hiveService = getIt<HiveStorageService>();
+    final employeeDetails = hiveService.employeeDetails;
+
+    // Safe extraction of employee details
+    final name = employeeDetails?['name'] ?? "No Name";
+
     return Consumer<TimeTrackerProvider>(builder: (context, provider, _) {
       final data = provider.entity;
 
@@ -88,12 +94,9 @@ class _TimeTrackerScreenState extends State<TimeTrackerScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Clock icon
-                            Icon(Icons.lock_clock, color: AppColors.greyColor),
-
                             // Time
                             KText(
-                              text: "11:53 AM",
+                              text: name,
                               fontWeight: FontWeight.w600,
                               fontSize: 12.sp,
                             ),
