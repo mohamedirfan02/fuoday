@@ -51,6 +51,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'features/home/presentation/provider/checkin_status_provider.dart';
 import 'features/leave_tracker/presentation/providers/leave_regulation_provider.dart';
 import 'features/management/presentation/provider/emp_audit_form_provider.dart';
 import 'features/payslip/presentation/Provider/payroll_overview_provider.dart';
@@ -260,6 +261,10 @@ class MyApp extends StatelessWidget {
 
         ChangeNotifierProvider(
           create: (context) => getIt<AuditReportingTeamProvider>(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (context) => getIt<CheckinStatusProvider>(),
         ),
 
 

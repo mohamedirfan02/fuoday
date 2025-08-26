@@ -13,6 +13,8 @@ abstract class AppEnvironment {
   static void setUpEnv(Environment environment) {
     _environment = environment;
 
+// for get aab for prod flutter build appbundle --flavor prod -t lib/main_prod.dart
+
     switch (environment) {
       case Environment.development:
         baseUrl = dotenv.env['API_DEV_BASE_URL']!;

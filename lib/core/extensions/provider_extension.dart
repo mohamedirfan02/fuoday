@@ -16,6 +16,7 @@ import 'package:fuoday/features/bottom_nav/providers/bottom_nav_provider.dart';
 import 'package:fuoday/features/calendar/presentation/providers/shift_schedule_provider.dart';
 import 'package:fuoday/features/home/presentation/provider/all_events_provider.dart';
 import 'package:fuoday/features/home/presentation/provider/check_in_provider.dart';
+import 'package:fuoday/features/home/presentation/provider/checkin_status_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_form_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/performance_summary_provider.dart';
@@ -191,4 +192,10 @@ extension ProviderExtension on BuildContext {
 
   AppInternetCheckerProvider get appInternetCheckerProviderWatch =>
       watch<AppInternetCheckerProvider>();
+
+  CheckinStatusProvider get checkinStatusProviderWatch =>
+      watch<CheckinStatusProvider>();
+
+  CheckinStatusProvider get checkinStatusProviderRead =>
+      read<CheckinStatusProvider>();
 }

@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:fuoday/config/flavors/flavors_config.dart';
 import 'package:flutter/foundation.dart';
+import 'package:fuoday/core/di/injection.dart';
+import 'package:fuoday/core/service/secure_storage_service.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class DioService {
@@ -22,6 +24,16 @@ class DioService {
         },
       ),
     );
+
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        final token = await getIt<SecureStorageService>().getToken();
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
+        return handler.next(options);
+      },
+    ));
 
     if (kDebugMode) {
       _dio.interceptors.add(

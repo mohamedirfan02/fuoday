@@ -163,4 +163,7 @@ class AppApiEndpointConstants {
 
   //get audit reporting team
   static String getAuditReportingTeam(int webUserId) => '$baseUrl/hrms/performance/getauditreportingteam/$webUserId';
+
+  //get checkIn checkOut status and time
+  static String getCheckInCheckOutStatusAndTime(int webUserId) => '$baseUrl/hrms/home/getactivities/$webUserId';
 }
