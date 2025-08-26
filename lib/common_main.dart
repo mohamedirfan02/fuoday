@@ -32,6 +32,7 @@ import 'package:fuoday/features/organizations/presentation/providers/organizatio
 import 'package:fuoday/features/organizations/presentation/providers/services_and_industries_provider.dart';
 import 'package:fuoday/features/organizations/presentation/screens/organizations_about.dart';
 import 'package:fuoday/features/payslip/presentation/Provider/payroll_provider.dart';
+import 'package:fuoday/features/performance/presentation/providers/audit_report_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_form_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/performance_summary_provider.dart';
@@ -265,6 +266,10 @@ class MyApp extends StatelessWidget {
 
         ChangeNotifierProvider(
           create: (context) => getIt<CheckinStatusProvider>(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (context) => getIt<AuditReportProvider>(),
         ),
 
 

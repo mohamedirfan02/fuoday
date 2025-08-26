@@ -124,22 +124,27 @@ import 'package:fuoday/features/payslip/domain/usecase/get_payroll_overview_usec
 import 'package:fuoday/features/payslip/domain/usecase/get_payroll_usecase.dart';
 import 'package:fuoday/features/payslip/presentation/Provider/payroll_overview_provider.dart';
 import 'package:fuoday/features/payslip/presentation/Provider/payroll_provider.dart';
+import 'package:fuoday/features/performance/data/datasources/remote/audit_report_remote_datasource.dart';
 import 'package:fuoday/features/performance/data/datasources/remote/audit_reporting_team_remote_datasource.dart';
 import 'package:fuoday/features/performance/data/datasources/remote/employee_audit_form_remote_data_source.dart';
 import 'package:fuoday/features/performance/data/datasources/remote/employee_audit_remote_data_source.dart';
 import 'package:fuoday/features/performance/data/datasources/remote/performance_summary_remote_data_source.dart';
+import 'package:fuoday/features/performance/data/repository/audit_report_repository_impl.dart';
 import 'package:fuoday/features/performance/data/repository/audit_reporting_team_repository_impl.dart';
 import 'package:fuoday/features/performance/data/repository/employee_audit_form_repository_impl.dart';
 import 'package:fuoday/features/performance/data/repository/employee_audit_repository_impl.dart';
 import 'package:fuoday/features/performance/data/repository/performance_summary_repository_impl.dart';
+import 'package:fuoday/features/performance/domain/repository/audit_report_repository.dart';
 import 'package:fuoday/features/performance/domain/repository/audit_reporting_team_repository.dart';
 import 'package:fuoday/features/performance/domain/repository/employee_audit_form_repository.dart';
 import 'package:fuoday/features/performance/domain/repository/employee_audit_repository.dart';
 import 'package:fuoday/features/performance/domain/repository/performance_summary_repository.dart';
+import 'package:fuoday/features/performance/domain/usecases/get_audit_report_usecase.dart';
 import 'package:fuoday/features/performance/domain/usecases/get_audit_reporting_team_usecase.dart';
 import 'package:fuoday/features/performance/domain/usecases/get_employee_audit_use_case.dart';
 import 'package:fuoday/features/performance/domain/usecases/get_performance_summary_use_case.dart';
 import 'package:fuoday/features/performance/domain/usecases/post_employee_audit_form_use_case.dart';
+import 'package:fuoday/features/performance/presentation/providers/audit_report_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/audit_reporting_team_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_form_provider.dart';
 import 'package:fuoday/features/performance/presentation/providers/employee_audit_provider.dart';
@@ -1069,5 +1074,26 @@ void setUpServiceLocator() {
       getCheckinStatusUseCase: getIt<GetCheckinStatusUseCase>(),
     ),
   );
+
+  // Data Source
+  getIt.registerLazySingleton<AuditReportRemoteDataSource>(
+        () => AuditReportRemoteDataSourceImpl(getIt<DioService>()),
+  );
+
+// Repository
+  getIt.registerLazySingleton<AuditReportRepository>(
+        () => AuditReportRepositoryImpl(getIt()),
+  );
+
+// Usecase
+  getIt.registerLazySingleton(() => GetAuditReportUseCase(getIt()));
+
+// Provider
+  getIt.registerFactory(
+        () => AuditReportProvider(
+      getAuditReportUseCase: getIt<GetAuditReportUseCase>(),
+    ),
+  );
+
 
 }
