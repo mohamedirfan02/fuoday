@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:fuoday/core/constants/router/app_route_constants.dart';
+import 'package:fuoday/core/di/injection.dart';
 import 'package:fuoday/core/models/file_preview_data.dart';
+import 'package:fuoday/core/service/hive_storage_service.dart';
 import 'package:fuoday/features/approval/presentation/screens/approval_screen.dart';
 import 'package:fuoday/features/attendance/presentation/screens/attendance_absent_days_details_screen.dart';
 import 'package:fuoday/features/attendance/presentation/screens/attendance_early_arrivals_details_screen.dart';
@@ -443,9 +445,13 @@ final GoRouter appRouter = GoRouter(
       path: "/teamTree",
       name: AppRouteConstants.teamTree,
       builder: (context, state) {
-        return TeamTreeScreen();
+        final hive = getIt<HiveStorageService>();
+        final int webUserId = int.tryParse(hive.employeeDetails?['web_user_id'] ?? '0') ?? 0;
+
+        return TeamTreeScreen(webUserId: webUserId, );
       },
     ),
+
 
     // Hr screen
     GoRoute(

@@ -42,6 +42,7 @@ import 'package:fuoday/features/support/domain/usecase/create_ticket_usecase.dar
 import 'package:fuoday/features/support/domain/usecase/get_ticket_details_usecase.dart';
 import 'package:fuoday/features/support/persentation/provider/get_ticket_details_provider.dart';
 import 'package:fuoday/features/support/persentation/provider/ticket_provider.dart';
+import 'package:fuoday/features/team_tree/presentation/provider/team_tree_provider.dart';
 import 'package:fuoday/features/teams/presentation/providers/team_members_provider.dart';
 import 'package:fuoday/features/teams/presentation/providers/team_project_provider.dart';
 import 'package:fuoday/features/teams/presentation/providers/team_reportees_provider.dart';
@@ -270,6 +271,10 @@ class MyApp extends StatelessWidget {
 
         ChangeNotifierProvider(
           create: (context) => getIt<AuditReportProvider>(),
+        ),
+
+        ChangeNotifierProvider(
+          create: (context) => getIt<TeamTreeProvider>(),
         ),
 
 

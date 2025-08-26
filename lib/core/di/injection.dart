@@ -179,6 +179,11 @@ import 'package:fuoday/features/support/domain/repository/ticket_repository.dart
 import 'package:fuoday/features/support/domain/usecase/create_ticket_usecase.dart';
 import 'package:fuoday/features/support/domain/usecase/get_ticket_details_usecase.dart';
 import 'package:fuoday/features/support/persentation/provider/get_ticket_details_provider.dart';
+import 'package:fuoday/features/team_tree/data/datasource/team_tree_remote_data_source.dart';
+import 'package:fuoday/features/team_tree/data/repositories/team_tree_repository_impl.dart';
+import 'package:fuoday/features/team_tree/domain/repository/team_tree_repository.dart';
+import 'package:fuoday/features/team_tree/domain/usecase/get_team_tree_usecase.dart';
+import 'package:fuoday/features/team_tree/presentation/provider/team_tree_provider.dart';
 import 'package:fuoday/features/teams/data/datasources/local/team_member_local_data_source.dart';
 import 'package:fuoday/features/teams/data/datasources/local/team_projects_local_data_source.dart';
 import 'package:fuoday/features/teams/data/datasources/local/team_reportees_local_data_source.dart';
@@ -1094,6 +1099,25 @@ void setUpServiceLocator() {
       getAuditReportUseCase: getIt<GetAuditReportUseCase>(),
     ),
   );
+
+  // Data Source
+  getIt.registerLazySingleton<TeamTreeRemoteDataSource>(
+        () => TeamTreeRemoteDataSourceImpl(getIt<DioService>()),
+  );
+
+// Repository
+  getIt.registerLazySingleton<TeamTreeRepository>(
+        () => TeamTreeRepositoryImpl(getIt()),
+  );
+
+// Usecase
+  getIt.registerLazySingleton(() => GetTeamTreeUseCase(getIt()));
+
+// Provider
+  getIt.registerFactory(
+        () => TeamTreeProvider(getTeamTreeUseCase: getIt<GetTeamTreeUseCase>()),
+  );
+
 
 
 }
