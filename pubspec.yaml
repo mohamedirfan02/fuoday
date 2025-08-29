@@ -139,7 +139,11 @@ dependencies:
   #url_launcher:
   url_launcher: ^6.3.0
 
+  #page_transition:
   page_transition: ^2.1.0
+
+  #firebase_core:
+  firebase_core: ^4.0.0
 
 
 

@@ -36,7 +36,7 @@ class ProjectModel {
   ProjectModel({required this.progress, required this.deadline, required this.teamInitials});
   factory ProjectModel.fromJson(Map<String, dynamic> j) {
     final initials = (j['project_team'] as List)
-        .map((e) => (e['emp_name'] as String).split(' ').map((w)=>w[0]).join())
+        .map((e) => (e['emp_name'] as String).trim()[0]) // FIXED
         .toList();
     return ProjectModel(progress: j['progress'], deadline: j['deadline'], teamInitials: initials);
   }

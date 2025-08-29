@@ -8,6 +8,7 @@ import 'package:fuoday/core/extensions/provider_extension.dart';
 import 'package:fuoday/core/helper/app_logger_helper.dart';
 import 'package:fuoday/core/service/hive_storage_service.dart';
 import 'package:fuoday/features/performance/presentation/widgets/performance_card.dart';
+import 'package:intl/intl.dart';
 
 class PerformanceSummary extends StatefulWidget {
   const PerformanceSummary({super.key});
@@ -22,6 +23,8 @@ class _PerformanceSummaryState extends State<PerformanceSummary> {
   late final Map<String, dynamic>? employeeDetails;
   late final String name;
   late final int webUserId;
+  final dateFormatter = DateFormat('yyyy-MM-dd'); // or 'dd-MM-yyyy'
+
 
   @override
   void initState() {
@@ -56,10 +59,10 @@ class _PerformanceSummaryState extends State<PerformanceSummary> {
     final data = provider.summary?.tasks?.map((task) {
       return {
         //'S.No': task.id.toString(),
-        'Date': task.date ?? '',
+        'Date': task.date != null ? dateFormatter.format(task.date!) : '',
         'Task': task.description ?? '',
         'Assigned By': task.assignedBy ?? '',
-        'Deadline': task.deadline ?? '',
+        'Deadline': task.deadline != null ? dateFormatter.format(task.deadline!) : '',
         'Status': task.status ?? '',
         'Progress Note': task.progressNote ?? '',
 
