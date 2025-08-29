@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fuoday/commons/widgets/k_app_bar.dart';
@@ -12,7 +11,7 @@ import 'package:graphview/GraphView.dart';
 import 'package:provider/provider.dart';
 
 class TeamTreeScreen extends StatelessWidget {
-  final int webUserId; // pass logged-in user's webUserId
+  final int webUserId;
 
   const TeamTreeScreen({super.key, required this.webUserId});
 
@@ -197,7 +196,7 @@ class _TeamTreeViewState extends State<_TeamTreeView> {
                   final manager = data.firstWhere((m) => m.managerId == managerId);
                   return _buildEmployeeCard(
                     manager.managerName,
-                    "Manager",
+                    "CEO/Founder",
                     null,
                   );
                 } else if (nodeId.startsWith("emp_")) {
@@ -216,7 +215,6 @@ class _TeamTreeViewState extends State<_TeamTreeView> {
                     employee.profilePhoto,
                   );
                 }
-
                 return const SizedBox();
               },
             ),

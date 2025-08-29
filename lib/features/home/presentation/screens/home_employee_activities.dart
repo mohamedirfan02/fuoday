@@ -41,7 +41,8 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
   void _initializeData() {
     final hiveService = getIt<HiveStorageService>();
     final employeeDetails = hiveService.employeeDetails;
-    final int webUserId = int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '') ?? 0;
+    final int webUserId =
+        int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '') ?? 0;
 
     // Fetch events
     context.allEventsProviderRead.fetchAllEvents();
@@ -58,7 +59,8 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
       // FIX: Use listen: false to avoid the provider listening error
       if (mounted) {
         // Check if currently checked in using listen: false
-        final checkinStatusProvider = context.checkinStatusProviderRead; // This uses listen: false
+        final checkinStatusProvider =
+            context.checkinStatusProviderRead; // This uses listen: false
         if (checkinStatusProvider.isCurrentlyCheckedIn) {
           setState(() {});
         }
@@ -97,13 +99,15 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
     final hiveService = getIt<HiveStorageService>();
     final employeeDetails = hiveService.employeeDetails;
     final name = employeeDetails?['name'] ?? "No Name";
-    final int webUserId = int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '') ?? 0;
+    final int webUserId =
+        int.tryParse(employeeDetails?['web_user_id']?.toString() ?? '') ?? 0;
 
     return RefreshIndicator(
       onRefresh: () async {
         await Future.wait([
           context.allEventsProviderRead.fetchAllEvents(forceRefresh: true),
-          if (webUserId > 0) context.checkinStatusProviderRead.fetchCheckinStatus(webUserId),
+          if (webUserId > 0)
+            context.checkinStatusProviderRead.fetchCheckinStatus(webUserId),
         ]);
       },
       child: SingleChildScrollView(
@@ -146,7 +150,7 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                       if (checkinStatusProvider.isLoading)
                         const CircularProgressIndicator(color: Colors.white)
                       else if (checkinStatusProvider.isCurrentlyCheckedIn)
-                      // Show real-time working duration from API checkin time
+                        // Show real-time working duration from API checkin time
                         KText(
                           text: checkinStatusProvider.formattedWorkingDuration,
                           fontWeight: FontWeight.w500,
@@ -155,36 +159,36 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                         )
                       else if (checkInProvider.isCheckedIn)
                         // Show local stopwatch when checked in locally but not via API
-                          StreamBuilder<int>(
-                            stream: checkInProvider.stopWatchTimer.rawTime,
-                            initialData: 0,
-                            builder: (_, snapshot) {
-                              final rawTime = snapshot.data ?? 0;
-                              final duration = Duration(milliseconds: rawTime);
+                        StreamBuilder<int>(
+                          stream: checkInProvider.stopWatchTimer.rawTime,
+                          initialData: 0,
+                          builder: (_, snapshot) {
+                            final rawTime = snapshot.data ?? 0;
+                            final duration = Duration(milliseconds: rawTime);
 
-                              final hours = duration.inHours;
-                              final minutes = duration.inMinutes.remainder(60);
-                              final seconds = duration.inSeconds.remainder(60);
+                            final hours = duration.inHours;
+                            final minutes = duration.inMinutes.remainder(60);
+                            final seconds = duration.inSeconds.remainder(60);
 
-                              final formattedTime =
-                                  '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+                            final formattedTime =
+                                '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
-                              return KText(
-                                text: formattedTime,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 17.sp,
-                                color: AppColors.secondaryColor,
-                              );
-                            },
-                          )
-                        else
+                            return KText(
+                              text: formattedTime,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 17.sp,
+                              color: AppColors.secondaryColor,
+                            );
+                          },
+                        )
+                      else
                         // Show 00:00:00 when not checked in
-                          KText(
-                            text: "00:00:00",
-                            fontWeight: FontWeight.w500,
-                            fontSize: 17.sp,
-                            color: AppColors.secondaryColor,
-                          ),
+                        KText(
+                          text: "00:00:00",
+                          fontWeight: FontWeight.w500,
+                          fontSize: 17.sp,
+                          color: AppColors.secondaryColor,
+                        ),
 
                       KVerticalSpacer(height: 8.h),
 
@@ -192,7 +196,8 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                       KCheckInButton(
                         text: checkInProvider.isLoading
                             ? "Loading..."
-                            : (checkinStatusProvider.isCurrentlyCheckedIn || checkInProvider.isCheckedIn)
+                            : (checkinStatusProvider.isCurrentlyCheckedIn ||
+                                  checkInProvider.isCheckedIn)
                             ? "Check Out"
                             : "Check In",
                         fontSize: 8.sp,
@@ -200,45 +205,56 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                         width: 100.w,
                         backgroundColor: checkInProvider.isLoading
                             ? Colors.grey
-                            : (checkinStatusProvider.isCurrentlyCheckedIn || checkInProvider.isCheckedIn)
+                            : (checkinStatusProvider.isCurrentlyCheckedIn ||
+                                  checkInProvider.isCheckedIn)
                             ? AppColors.checkOutColor
                             : AppColors.checkInColor,
                         onPressed: checkInProvider.isLoading
                             ? null
                             : () async {
-                          final now = DateTime.now().toIso8601String();
+                                final now = DateTime.now().toIso8601String();
 
-                          if (checkinStatusProvider.isCurrentlyCheckedIn || checkInProvider.isCheckedIn) {
-                            await context.checkInProviderRead.handleCheckOut(
-                              userId: webUserId,
-                              time: now,
-                            );
-                            // Stop the local stopwatch timer when checking out
-                            checkInProvider.stopWatchTimer.onStopTimer();
-                            AppLoggerHelper.logInfo("Check Out Web User Id: $webUserId");
-                          } else {
-                            await context.checkInProviderRead.handleCheckIn(
-                              userId: webUserId,
-                              time: now,
-                            );
-                            AppLoggerHelper.logInfo("Check In Web User Id: $webUserId");
+                                if (checkinStatusProvider
+                                        .isCurrentlyCheckedIn ||
+                                    checkInProvider.isCheckedIn) {
+                                  await context.checkInProviderRead
+                                      .handleCheckOut(
+                                        userId: webUserId,
+                                        time: now,
+                                      );
+                                  // Stop the local stopwatch timer when checking out
+                                  checkInProvider.stopWatchTimer.onStopTimer();
+                                  AppLoggerHelper.logInfo(
+                                    "Check Out Web User Id: $webUserId",
+                                  );
+                                } else {
+                                  await context.checkInProviderRead
+                                      .handleCheckIn(
+                                        userId: webUserId,
+                                        time: now,
+                                      );
+                                  AppLoggerHelper.logInfo(
+                                    "Check In Web User Id: $webUserId",
+                                  );
 
-                            // Start the local stopwatch timer for immediate feedback
-                            checkInProvider.stopWatchTimer.onResetTimer();
-                            checkInProvider.stopWatchTimer.onStartTimer();
-                          }
+                                  // Start the local stopwatch timer for immediate feedback
+                                  checkInProvider.stopWatchTimer.onResetTimer();
+                                  checkInProvider.stopWatchTimer.onStartTimer();
+                                }
 
-                          // Refresh checkin status after check-in/out
-                          if (webUserId > 0) {
-                            await context.checkinStatusProviderRead.fetchCheckinStatus(webUserId);
-                          }
-                        },
+                                // Refresh checkin status after check-in/out
+                                if (webUserId > 0) {
+                                  await context.checkinStatusProviderRead
+                                      .fetchCheckinStatus(webUserId);
+                                }
+                              },
                       ),
 
                       KVerticalSpacer(height: 8.h),
 
                       /// Status & Location
-                      if (checkInProvider.isLoading || checkinStatusProvider.isLoading)
+                      if (checkInProvider.isLoading ||
+                          checkinStatusProvider.isLoading)
                         const CircularProgressIndicator(color: Colors.white)
                       else
                         Column(
@@ -255,7 +271,8 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                             ),
                             KVerticalSpacer(height: 8.h),
                             KAuthFilledBtn(
-                              text: "Location ${checkinStatusProvider.checkinStatus?.location ?? 'onSite'}",
+                              text:
+                                  "Location ${checkinStatusProvider.checkinStatus?.location ?? 'onSite'}",
                               fontSize: 8.sp,
                               onPressed: () {},
                               backgroundColor: AppColors.locationOnSiteColor,
@@ -278,7 +295,8 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                                 color: AppColors.secondaryColor,
                               ),
                               KText(
-                                text: checkinStatusProvider.formattedCheckinTime,
+                                text:
+                                    checkinStatusProvider.formattedCheckinTime,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 10.sp,
                                 color: AppColors.secondaryColor,
@@ -292,7 +310,8 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                                 color: AppColors.secondaryColor,
                               ),
                               KText(
-                                text: checkinStatusProvider.formattedCheckoutTime,
+                                text:
+                                    checkinStatusProvider.formattedCheckoutTime,
                                 fontWeight: FontWeight.w500,
                                 fontSize: 10.sp,
                                 color: AppColors.secondaryColor,
@@ -374,7 +393,8 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: KText(
-                      text: 'Checkin Status Error: ${checkinStatusProvider.error}',
+                      text:
+                          'Checkin Status Error: ${checkinStatusProvider.error}',
                       fontWeight: FontWeight.w500,
                       color: Colors.red,
                       fontSize: 10.sp,
@@ -389,12 +409,12 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
   }
 
   Widget _buildEventCard(
-      BuildContext context, {
-        required String title,
-        required List<EventEntity> events,
-        required String img,
-        required Color bg,
-      }) {
+    BuildContext context, {
+    required String title,
+    required List<EventEntity> events,
+    required String img,
+    required Color bg,
+  }) {
     return Padding(
       padding: EdgeInsets.only(right: 12.w),
       child: KHomeActivitiesCard(
@@ -414,40 +434,47 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                 width: double.maxFinite,
                 child: events.isEmpty
                     ? Center(
-                  child: KText(
-                    text: "No $title available",
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12.sp,
-                    color: AppColors.greyColor,
-                  ),
-                )
-                    : ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: events.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (_, index) {
-                    final event = events[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        KText(
-                          text: event.title,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.sp,
-                          color: AppColors.titleColor,
-                        ),
-                        KVerticalSpacer(height: 5.h),
-                        KText(
-                          text: event.description,
+                        child: KText(
+                          text: "No $title available",
                           fontWeight: FontWeight.w500,
                           fontSize: 12.sp,
                           color: AppColors.greyColor,
                         ),
-                        KVerticalSpacer(height: 5.h),
-                      ],
-                    );
-                  },
-                ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: events.length,
+                        separatorBuilder: (_, __) => const Divider(),
+                        itemBuilder: (_, index) {
+                          final event = events[index];
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              KText(
+                                text: event.title,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.sp,
+                                color: AppColors.titleColor,
+                              ),
+                              KVerticalSpacer(height: 5.h),
+                              KText(
+                                text: event.description,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12.sp,
+                                color: AppColors.greyColor,
+                              ),
+                              KVerticalSpacer(height: 5.h),
+                              KText(
+                                text: DateFormat('dd MMM yyyy').format(event.date),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12.sp,
+                                color: AppColors.greyColor,
+                              ),
+                              KVerticalSpacer(height: 5.h),
+                            ],
+                          );
+                        },
+                      ),
               ),
               actions: [
                 TextButton(
