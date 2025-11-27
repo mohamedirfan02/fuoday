@@ -7,6 +7,7 @@ import 'package:fuoday/core/constants/assets/app_assets_constants.dart';
 import 'package:fuoday/core/di/injection.dart';
 import 'package:fuoday/core/extensions/provider_extension.dart';
 import 'package:fuoday/core/helper/app_logger_helper.dart';
+import 'package:fuoday/core/helper/notification_helper.dart';
 import 'package:fuoday/core/service/hive_storage_service.dart';
 import 'package:fuoday/core/themes/app_colors.dart';
 import 'package:fuoday/features/auth/presentation/widgets/k_auth_filled_btn.dart';
@@ -231,12 +232,12 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                       KVerticalSpacer(height: 8.h),
 
                       /// Check-in/out button
+                      /// Check-in/out button
                       KCheckInButton(
                         textColor: theme.secondaryHeaderColor,
                         text: checkInProvider.isLoading
                             ? "Loading..."
-                            : (checkinStatusProvider.isCurrentlyCheckedIn ||
-                                  checkInProvider.isCheckedIn)
+                            : (checkinStatusProvider.isCurrentlyCheckedIn || checkInProvider.isCheckedIn)
                             ? "Check Out"
                             : "Check In",
                         fontSize: 10.sp,
@@ -244,54 +245,52 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
                         width: 125.w,
                         backgroundColor: checkInProvider.isLoading
                             ? Colors.grey
-                            : (checkinStatusProvider.isCurrentlyCheckedIn ||
-                                  checkInProvider.isCheckedIn)
+                            : (checkinStatusProvider.isCurrentlyCheckedIn || checkInProvider.isCheckedIn)
                             ? isDark
-                                  ? AppColors.checkOutColorDark
-                                  : AppColors.checkOutColor
+                            ? AppColors.checkOutColorDark
+                            : AppColors.checkOutColor
                             : isDark
                             ? AppColors.checkInColorDark
                             : AppColors.checkInColor,
                         onPressed: checkInProvider.isLoading
                             ? null
                             : () async {
-                                final now = DateTime.now().toIso8601String();
+                          final now = DateTime.now().toIso8601String();
 
-                                if (checkinStatusProvider
-                                        .isCurrentlyCheckedIn ||
-                                    checkInProvider.isCheckedIn) {
-                                  await context.checkInProviderRead
-                                      .handleCheckOut(
-                                        userId: webUserId,
-                                        time: now,
-                                      );
-                                  // Stop the local stopwatch timer when checking out
-                                  checkInProvider.stopWatchTimer.onStopTimer();
-                                  AppLoggerHelper.logInfo(
-                                    "Check Out Web User Id: $webUserId",
-                                  );
-                                } else {
-                                  await context.checkInProviderRead
-                                      .handleCheckIn(
-                                        userId: webUserId,
-                                        time: now,
-                                      );
-                                  AppLoggerHelper.logInfo(
-                                    "Check In Web User Id: $webUserId",
-                                  );
+                          if (checkinStatusProvider.isCurrentlyCheckedIn || checkInProvider.isCheckedIn) {
+                            await context.checkInProviderRead.handleCheckOut(userId: webUserId, time: now);
+                            checkInProvider.stopWatchTimer.onStopTimer();
 
-                                  // Start the local stopwatch timer for immediate feedback
-                                  checkInProvider.stopWatchTimer.onResetTimer();
-                                  checkInProvider.stopWatchTimer.onStartTimer();
-                                }
+                            // ✅ Show real system notification
+                            await NotificationHelper.showNotification(
+                              'Attendance',
+                              'Checked out successfully for today!',
+                            );
 
-                                // Refresh checkin status after check-in/out
-                                if (webUserId > 0) {
-                                  await context.checkinStatusProviderRead
-                                      .fetchCheckinStatus(webUserId);
-                                }
-                              },
+                            AppLoggerHelper.logInfo("Check Out Web User Id: $webUserId");
+                          } else {
+                            await context.checkInProviderRead.handleCheckIn(userId: webUserId, time: now);
+                            checkInProvider.stopWatchTimer.onResetTimer();
+                            checkInProvider.stopWatchTimer.onStartTimer();
+
+                            // ✅ Show real system notification
+                            await NotificationHelper.showNotification(
+                              'Attendance',
+                              'Checked in successfully for today!',
+                            );
+
+                            AppLoggerHelper.logInfo("Check In Web User Id: $webUserId");
+                          }
+
+                          // Refresh check-in status
+                          if (webUserId > 0) {
+                            await context.checkinStatusProviderRead.fetchCheckinStatus(webUserId);
+                          }
+                        },
+
+
                       ),
+
 
                       KVerticalSpacer(height: 8.h),
 

@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fuoday/commons/providers/checkbox_provider.dart';
@@ -65,7 +68,8 @@ import 'package:fuoday/features/time_tracker/presentation/provider/time_tracker_
 import 'package:fuoday/features/time_tracker/presentation/screens/time_tracker_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-
+import 'package:timezone/data/latest.dart' as tz;
+import 'core/models/notification_model.dart';
 import 'features/ats_candidate/presentation/provider/candidate_action_provider.dart';
 import 'features/ats_candidate/presentation/provider/candidates_provider.dart';
 import 'features/attendance/presentation/providers/date_time_provider.dart';
@@ -78,7 +82,10 @@ import 'features/management/presentation/provider/emp_audit_form_provider.dart';
 import 'features/payslip/presentation/Provider/payroll_overview_provider.dart';
 import 'features/performance/presentation/providers/audit_reporting_team_provider.dart';
 
-void commonMain() async {
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+Future<void> commonMain() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // App Api Environment Check
@@ -89,12 +96,20 @@ void commonMain() async {
   // Hive init
   await Hive.initFlutter();
 
+  // ===== IMPORTANT: Register Adapter BEFORE opening boxes =====
+  if (!Hive.isAdapterRegistered(5)) {
+    Hive.registerAdapter(NotificationModelAdapter());
+  }
+
+
   // Hive Open Boxes
   await Hive.openBox(AppHiveStorageConstants.apiCacheBox);
   await Hive.openBox(AppHiveStorageConstants.authBoxKey);
   await Hive.openBox(AppHiveStorageConstants.onBoardingBoxKey);
   await Hive.openBox(AppHiveStorageConstants.employeeDetailsBoxKey);
   await Hive.openBox(AppHiveStorageConstants.themeBoxKey);
+  // Open notifications box with type
+  await Hive.openBox<NotificationModel>(AppHiveStorageConstants.notificationsBoxKey);
 
   // dependency injection
   setUpServiceLocator();
@@ -102,7 +117,42 @@ void commonMain() async {
   // Initialize hive service
   await getIt<HiveStorageService>().init();
 
+  // ===== Initialize Local Notifications =====
+  await _initNotifications();
+
   runApp(const MyApp());
+}
+
+Future<void> _initNotifications() async {
+  tz.initializeTimeZones();
+
+  // Android initialization
+  const AndroidInitializationSettings androidSettings =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: androidSettings,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (details) {
+      // Optional: handle notification tap
+    },
+  );
+
+  // Android 13+ requires runtime permission
+  if (Platform.isAndroid) {
+    final androidImplementation = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidImplementation != null) {
+      // Use requestPermission() like this:
+      final granted = await androidImplementation.requestNotificationsPermission();
+      AppLoggerHelper.logInfo('Notification permission granted: $granted');
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {

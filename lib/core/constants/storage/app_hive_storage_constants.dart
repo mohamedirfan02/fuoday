@@ -55,4 +55,6 @@ class AppHiveStorageConstants {
   // Theme Box Key
   static const String themeBoxKey = "themeBoxKey";
   static const String themeModeKey = "themeModeKey";
+  static const String notificationsBoxKey = 'notifications_box'; // Add this
+
 }
