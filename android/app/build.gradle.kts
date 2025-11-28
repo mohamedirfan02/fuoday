@@ -34,8 +34,8 @@ android {
         applicationId = "com.thikse.fuoday"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 4              // ✅ use `=`
-        versionName = "1.0.3"
+        versionCode = 5              // ✅ use `=`
+        versionName = "1.0.4"
     }
 
     flavorDimensions += "environment"
