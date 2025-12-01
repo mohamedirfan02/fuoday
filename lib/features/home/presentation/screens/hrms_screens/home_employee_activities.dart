@@ -71,36 +71,36 @@ class _HomeEmployeeActivitiesState extends State<HomeEmployeeActivities> {
   }
   // Updated callback for when badges are submitted
 
-  void _handleBadgesSubmitted(List<Map<String, dynamic>> badges) async {
-    final provider = getIt<RecognitionProvider>();
-
-    final recognitions = badges.map((b) {
-      return RecognitionModel(
-        id: b['id'],
-        title: b['title'],
-        count: int.tryParse(b['description'] ?? "1") ?? 1,
-        imagePath: b['imagePath'], // ✅ local path
-      );
-    }).toList();
-
-    await provider.saveRecognitions(
-      webUserId: 0,
-      badges: recognitions, // Provider accepts Entity, Model extends Entity
-    );
-
-    AppLoggerHelper.logInfo("Badges sent successfully");
-  }
-
-  // Callback for when badges are updated
-  void _handleBadgesUpdated() {
-    AppLoggerHelper.logWarning('Badges were updated');
-
-    // TODO: Any additional logic after badges are updated
-    // For example:
-    // - Refresh some data
-    // - Update UI
-    // - Log analytics event
-  }
+  // void _handleBadgesSubmitted(List<Map<String, dynamic>> badges) async {
+  //   final provider = getIt<RecognitionProvider>();
+  //
+  //   final recognitions = badges.map((b) {
+  //     return RecognitionModel(
+  //       id: b['id'],
+  //       title: b['title'],
+  //       count: int.tryParse(b['description'] ?? "1") ?? 1,
+  //       imagePath: b['imagePath'], // ✅ local path
+  //     );
+  //   }).toList();
+  //
+  //   await provider.saveRecognitions(
+  //     webUserId: 0,
+  //     badges: recognitions, // Provider accepts Entity, Model extends Entity
+  //   );
+  //
+  //   AppLoggerHelper.logInfo("Badges sent successfully");
+  // }
+  //
+  // // Callback for when badges are updated
+  // void _handleBadgesUpdated() {
+  //   AppLoggerHelper.logWarning('Badges were updated');
+  //
+  //   // TODO: Any additional logic after badges are updated
+  //   // For example:
+  //   // - Refresh some data
+  //   // - Update UI
+  //   // - Log analytics event
+  // }
 
   @override
   void dispose() {

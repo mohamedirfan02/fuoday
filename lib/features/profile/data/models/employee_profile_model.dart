@@ -8,7 +8,7 @@ class EmployeeProfileModel {
   final String department;
   final String designation;
   final String dateOfJoining;
-  final String reportingManagerName;
+  final String? reportingManagerName;  // ✅ Change to nullable
   final String empId;
 
   EmployeeProfileModel({
@@ -21,23 +21,23 @@ class EmployeeProfileModel {
     required this.department,
     required this.designation,
     required this.dateOfJoining,
-    required this.reportingManagerName,
+    this.reportingManagerName,  // ✅ Remove 'required'
     required this.empId,
   });
 
   factory EmployeeProfileModel.fromJson(Map<String, dynamic> json) {
     return EmployeeProfileModel(
-      name: json['name'],
+      name: json['name'] ?? '',  // ✅ Provide default for safety
       about: json['about'],
-      dob: json['dob'],
+      dob: json['dob'] ?? '',
       address: json['address'],
-      email: json['email'],
-      personalContactNo: json['personal_contact_no'],
-      department: json['department'],
-      designation: json['designation'],
-      dateOfJoining: json['date_of_joining'],
-      reportingManagerName: json['reporting_manager_name'],
-      empId: json['emp_id'],
+      email: json['email'] ?? '',
+      personalContactNo: json['personal_contact_no'] ?? '',
+      department: json['department'] ?? '',
+      designation: json['designation'] ?? '',
+      dateOfJoining: json['date_of_joining'] ?? '',
+      reportingManagerName: json['reporting_manager_name'],  // ✅ Can be null now
+      empId: json['emp_id'] ?? '',
     );
   }
 }

@@ -58,7 +58,7 @@ class _ProfileEmploymentDetailsScreenState
         departmentController.text = profile.department;
         jobRoleController.text = profile.designation;
         dateOfJoinController.text = profile.dateOfJoining;
-        reportingManagerController.text = profile.reportingManagerName;
+        reportingManagerController.text = profile.reportingManagerName!;
         employeeIdController.text = profile.empId;
       });
     } catch (e) {

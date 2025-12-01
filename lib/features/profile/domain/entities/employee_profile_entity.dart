@@ -9,7 +9,7 @@ class EmployeeProfileEntity {
   final String department;
   final String designation;
   final String dateOfJoining;
-  final String reportingManagerName;
+  final String? reportingManagerName;  // ✅ Change to nullable
   final String empId;
 
   EmployeeProfileEntity({
@@ -23,7 +23,7 @@ class EmployeeProfileEntity {
     required this.department,
     required this.designation,
     required this.dateOfJoining,
-    required this.reportingManagerName,
+    this.reportingManagerName,  // ✅ Remove 'required'
     required this.empId,
   });
 }

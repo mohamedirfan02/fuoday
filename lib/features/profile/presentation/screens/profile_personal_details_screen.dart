@@ -5,6 +5,7 @@ import 'package:fuoday/commons/widgets/k_app_bar.dart';
 import 'package:fuoday/commons/widgets/k_image_picker_options_bottom_sheet.dart';
 import 'package:fuoday/commons/widgets/k_snack_bar.dart';
 import 'package:fuoday/commons/widgets/k_vertical_spacer.dart';
+import 'package:fuoday/core/constants/app_assets_constants.dart';
 import 'package:fuoday/core/di/injection.dart';
 import 'package:fuoday/core/extensions/provider_extension.dart';
 import 'package:fuoday/core/helper/app_logger_helper.dart';
@@ -130,9 +131,13 @@ class _ProfilePersonalDetailsScreenState
     final employeeDetails = hiveService.employeeDetails;
 
     // Safe extraction of employee details
-    var profilePhoto = employeeDetails?['profilePhoto'] ?? "";
-    profilePhoto = getFreshImageUrl(profilePhoto);
+    String? rawPhoto = employeeDetails?['profilePhoto'];
 
+    String profilePhoto = (rawPhoto == null || rawPhoto.isEmpty)
+        ? AppAssetsConstants.personPlaceHolderImg
+        : getFreshImageUrl(rawPhoto);
+
+//https://fuoday-s3-bucket.s3.ap-south-1.amazonaws.com/Thikse%20Software%20Solutions%20Private%20Limited/profile/1076.jpg
     return Scaffold(
       appBar: KAppBar(
         title: "Personal Details",
@@ -179,7 +184,10 @@ class _ProfilePersonalDetailsScreenState
                           radius: 45.h,
                           backgroundImage: _pickedImageFile != null
                               ? FileImage(_pickedImageFile!)
-                              : NetworkImage(profilePhoto) as ImageProvider,
+                              : (profilePhoto.startsWith("http")
+                              ? NetworkImage(profilePhoto)
+                              : AssetImage(AppAssetsConstants.personPlaceHolderImg)
+                          ) as ImageProvider,
                         ),
                       ),
 
