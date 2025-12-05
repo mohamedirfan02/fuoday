@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:fuoday/common_main.dart';
 import 'package:fuoday/core/constants/router/app_route_constants.dart';
 import 'package:fuoday/core/di/injection.dart';
 import 'package:fuoday/core/models/file_preview_data.dart';
@@ -86,7 +87,7 @@ CustomTransitionPage<T> _buildPageWithTransition<T>({
   required GoRouterState state,
   required Widget child,
   required Widget Function(Animation<double>, Animation<double>, Widget)
-  transition,
+      transition,
 }) {
   return CustomTransitionPage<T>(
     key: state.pageKey,
@@ -242,6 +243,10 @@ Widget _slideUp(
 
 /// App Router with improved transitions
 final GoRouter appRouter = GoRouter(
+
+  ///for auto logged out///
+  navigatorKey: navigatorKey,
+
   initialLocation: "/splash",
   routes: [
     GoRoute(

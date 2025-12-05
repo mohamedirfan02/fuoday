@@ -1,7 +1,6 @@
 import 'dart:io';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fuoday/commons/providers/checkbox_provider.dart';
 import 'package:fuoday/commons/providers/dropdown_provider.dart';
@@ -81,9 +80,11 @@ import 'features/leave_tracker/presentation/providers/leave_regulation_provider.
 import 'features/management/presentation/provider/emp_audit_form_provider.dart';
 import 'features/payslip/presentation/Provider/payroll_overview_provider.dart';
 import 'features/performance/presentation/providers/audit_reporting_team_provider.dart';
-
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
+
+/// For auto logout /////
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> commonMain() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -385,6 +386,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => getIt<UpdateRegulationStatusProvider>(),
         ),
+
         ChangeNotifierProvider(
           create: (context) => getIt<TotalPayrollProvider>(),
         ),
