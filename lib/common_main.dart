@@ -83,7 +83,6 @@ import 'features/performance/presentation/providers/audit_reporting_team_provide
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-/// For auto logout /////
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> commonMain() async {
