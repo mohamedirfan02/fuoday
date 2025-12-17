@@ -43,7 +43,113 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
     passwordController.dispose();
     super.dispose();
   }
+// Add this method to your _AuthLoginScreenState class
+// Add this helper method to extract user-friendly error messages
+  String _getUserFriendlyError(String? errorMessage) {
+    if (errorMessage == null || errorMessage.isEmpty) {
+      return "Login failed. Please try again.";
+    }
 
+    // Check for common error patterns
+    if (errorMessage.contains("email") && errorMessage.contains("valid")) {
+      return "Please enter a valid email address";
+    }
+
+    if (errorMessage.contains("credentials") ||
+        errorMessage.contains("Unauthorized") ||
+        errorMessage.contains("401")) {
+      return "Invalid email or password";
+    }
+
+    if (errorMessage.contains("email") || errorMessage.contains("password")) {
+      return "Invalid email or password";
+    }
+
+    if (errorMessage.contains("network") ||
+        errorMessage.contains("connection") ||
+        errorMessage.contains("timeout")) {
+      return "Network error. Please check your connection";
+    }
+
+    if (errorMessage.contains("500") || errorMessage.contains("server")) {
+      return "InVail Mail Id Please try again later";
+    }
+
+    if (errorMessage.contains("422")) {
+      return "Invalid login credentials";
+    }
+
+    // Default fallback
+    return "Login failed. Please check your credentials";
+  }
+
+// Updated _handleLogin method with user-friendly error handling
+  void _handleLogin() async {
+    // Form Key Validation
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    final provider = context.employeeAuthLoginProviderRead;
+    final isEmployee = context.slidingSegmentProviderRead.isEmployee;
+    final role = isEmployee ? "employee" : "recruiter";
+    final emailId = isEmployee
+        ? employeeIdController.text.trim()
+        : recruiterController.text.trim();
+    final password = passwordController.text.trim();
+
+    await provider.login(
+      role: role,
+      emailId: emailId,
+      password: password,
+    );
+
+    if (!mounted) return;
+
+    if (provider.authEntity != null) {
+      await HiveStorageService().setIsAuthLogged(true);
+
+      try {
+        await SecureStorageService().saveToken(
+          token: provider.authEntity!.token,
+        );
+
+        await HiveStorageService().setUserRole(role);
+
+        final rawWebUserId = provider.authEntity?.data.employeeDetails?.webUserId;
+
+        await HiveStorageService.setEmployeeDetailsStatic(
+          userName: provider.authEntity?.data.name ?? "No User Name",
+          role: role,
+          empId: provider.authEntity?.data.empId ?? "No EmpId",
+          email: emailId,
+          designation: provider.authEntity?.data.employeeDetails?.designation ?? "No Emp Designation",
+          profilePhoto: provider.authEntity?.data.employeeDetails?.profilePhoto ?? "No Image Url",
+          webUserId: rawWebUserId?.toString() ?? '0',
+          logo: provider.authEntity?.data.adminUser.logo ?? "No Image Url",
+          checkin: provider.authEntity?.data.employeeDetails?.checkin ?? (isEmployee ? 'no checkin' : 'checkin'),
+          id: provider.authEntity?.data.adminUser.id?.toString() ?? "No ID",
+          access: provider.authEntity?.data.employeeDetails?.access ?? "",
+        );
+
+        if (mounted) {
+          GoRouter.of(context).pushReplacementNamed(
+            isEmployee ? AppRouteConstants.employeeBottomNav : AppRouteConstants.homeRecruiter,
+          );
+          KSnackBar.success(context, "Login Successful");
+        }
+      } catch (e) {
+        AppLoggerHelper.logError('⛔ Failed to save token: $e');
+        if (mounted) {
+          KSnackBar.failure(context, "Failed to save login data. Please try again.");
+        }
+      }
+    } else {
+      // Show user-friendly error message
+      final userFriendlyError = _getUserFriendlyError(provider.error);
+      KSnackBar.failure(context, userFriendlyError);
+    }
+  }
   @override
   Widget build(BuildContext context) {
     //App Theme Data
@@ -263,7 +369,8 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                             controller: employeeIdController,
                                             suffixIcon: Icons.mail_outline,
                                             keyboardType: TextInputType.text,
-                                            hintText: "EMPLOYEE ID",
+                                            hintText: "Mail ID",
+                                            textInputAction: TextInputAction.next, // Move to next field
                                           ),
 
                                         // Recruiter TextField
@@ -280,7 +387,8 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                             controller: recruiterController,
                                             suffixIcon: Icons.mail_outline,
                                             keyboardType: TextInputType.text,
-                                            hintText: "RECRUITER ID",
+                                            hintText: "Mail ID",
+                                            textInputAction: TextInputAction.next, // Move to next field
                                           ),
 
                                         KVerticalSpacer(height: 20.h),
@@ -295,6 +403,8 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                               ),
                                           controller: passwordController,
                                           hintText: "PASSWORD",
+                                          textInputAction: TextInputAction.done, // Show done/enter button
+                                          onFieldSubmitted: (_) => _handleLogin(), // Trigger login on enter
                                         ),
 
                                         KVerticalSpacer(height: 12.h),
@@ -332,170 +442,171 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                             fontSize: 10.sp,
                                             text: "Employee Login",
                                             backgroundColor: theme.primaryColor,
-                                            onPressed: () async {
-                                              // // Internet Checker Provider
-                                              // if (!internetCheckerProvider
-                                              //     .isNetworkConnected) {
-                                              //   KSnackBar.failure(
-                                              //     context,
-                                              //     "No Internet Connection",
-                                              //   );
-                                              //   return;
-                                              // }
-
-                                              // Form Key Validation
-                                              if (!formKey.currentState!
-                                                  .validate()) {
-                                                return;
-                                              }
-
-                                              final provider = context
-                                                  .employeeAuthLoginProviderRead;
-
-                                              final role = "employee";
-                                              final emailId =
-                                                  employeeIdController.text
-                                                      .trim();
-                                              final password =
-                                                  passwordController.text
-                                                      .trim();
-
-                                              await provider.login(
-                                                role: role,
-                                                emailId: emailId,
-                                                password: password,
-                                              );
-
-                                              if (provider.authEntity != null) {
-                                                await HiveStorageService()
-                                                    .setIsAuthLogged(true);
-
-                                                try {
-                                                  await SecureStorageService()
-                                                      .saveToken(
-                                                        token: provider
-                                                            .authEntity!
-                                                            .token,
-                                                      );
-
-                                                  final role =
-                                                      "employee"; // 🔥 Store the role permanently
-                                                  await HiveStorageService()
-                                                      .setUserRole(role);
-                                                  final rawWebUserId = provider
-                                                      .authEntity
-                                                      ?.data
-                                                      .employeeDetails
-                                                      ?.webUserId;
-
-                                                  AppLoggerHelper.logInfo(
-                                                    '🧩 Raw webUserId: ${provider.authEntity?.data.employeeDetails.webUserId}',
-                                                  );
-                                                  AppLoggerHelper.logInfo(
-                                                    '🧩 Raw profilePhoto: ${provider.authEntity?.data.employeeDetails.profilePhoto}',
-                                                  );
-
-                                                  await HiveStorageService.setEmployeeDetailsStatic(
-                                                    userName:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .name ??
-                                                        "No User Name",
-                                                    role: role,
-                                                    empId:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .empId ??
-                                                        "No EmpId",
-                                                    email: emailId,
-                                                    designation:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .employeeDetails
-                                                            ?.designation ??
-                                                        "No Emp Designation",
-                                                    profilePhoto:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .employeeDetails
-                                                            ?.profilePhoto ??
-                                                        "No Image Url",
-                                                    webUserId:
-                                                        rawWebUserId
-                                                            ?.toString() ??
-                                                        '0',
-                                                    logo:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .adminUser
-                                                            .logo ??
-                                                        "No Image Url",
-                                                    checkin:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .employeeDetails
-                                                            .checkin ??
-                                                        'no checkin',
-                                                    id:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .adminUser
-                                                            .id
-                                                            ?.toString() ?? // Convert int to String if needed
-                                                        "No ID",
-
-                                                    access:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .employeeDetails
-                                                            .access ??
-                                                        "",
-                                                  );
-
-                                                  AppLoggerHelper.logInfo(
-                                                    '✅ Token saved to SecureStorage: ${provider.authEntity!.token}',
-                                                  );
-                                                } catch (e) {
-                                                  AppLoggerHelper.logError(
-                                                    '⛔ Failed to save token: $e',
-                                                  );
-                                                }
-
-                                                GoRouter.of(
-                                                  context,
-                                                ).pushReplacementNamed(
-                                                  AppRouteConstants
-                                                      .employeeBottomNav,
-                                                );
-
-                                                //  Success Snack Bar
-                                                KSnackBar.success(
-                                                  context,
-                                                  "Login Successfull",
-                                                );
-                                              } else {
-                                                AppLoggerHelper.logError(
-                                                  'Login Failed: ${provider.error}',
-                                                );
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Login Failed: ${provider.error}',
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            },
+                                            // onPressed: () async {
+                                            //   // // Internet Checker Provider
+                                            //   // if (!internetCheckerProvider
+                                            //   //     .isNetworkConnected) {
+                                            //   //   KSnackBar.failure(
+                                            //   //     context,
+                                            //   //     "No Internet Connection",
+                                            //   //   );
+                                            //   //   return;
+                                            //   // }
+                                            //
+                                            //   // Form Key Validation
+                                            //   if (!formKey.currentState!
+                                            //       .validate()) {
+                                            //     return;
+                                            //   }
+                                            //
+                                            //   final provider = context
+                                            //       .employeeAuthLoginProviderRead;
+                                            //
+                                            //   final role = "employee";
+                                            //   final emailId =
+                                            //       employeeIdController.text
+                                            //           .trim();
+                                            //   final password =
+                                            //       passwordController.text
+                                            //           .trim();
+                                            //
+                                            //   await provider.login(
+                                            //     role: role,
+                                            //     emailId: emailId,
+                                            //     password: password,
+                                            //   );
+                                            //
+                                            //   if (provider.authEntity != null) {
+                                            //     await HiveStorageService()
+                                            //         .setIsAuthLogged(true);
+                                            //
+                                            //     try {
+                                            //       await SecureStorageService()
+                                            //           .saveToken(
+                                            //             token: provider
+                                            //                 .authEntity!
+                                            //                 .token,
+                                            //           );
+                                            //
+                                            //       final role =
+                                            //           "employee"; // 🔥 Store the role permanently
+                                            //       await HiveStorageService()
+                                            //           .setUserRole(role);
+                                            //       final rawWebUserId = provider
+                                            //           .authEntity
+                                            //           ?.data
+                                            //           .employeeDetails
+                                            //           ?.webUserId;
+                                            //
+                                            //       AppLoggerHelper.logInfo(
+                                            //         '🧩 Raw webUserId: ${provider.authEntity?.data.employeeDetails.webUserId}',
+                                            //       );
+                                            //       AppLoggerHelper.logInfo(
+                                            //         '🧩 Raw profilePhoto: ${provider.authEntity?.data.employeeDetails.profilePhoto}',
+                                            //       );
+                                            //
+                                            //       await HiveStorageService.setEmployeeDetailsStatic(
+                                            //         userName:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .name ??
+                                            //             "No User Name",
+                                            //         role: role,
+                                            //         empId:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .empId ??
+                                            //             "No EmpId",
+                                            //         email: emailId,
+                                            //         designation:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .employeeDetails
+                                            //                 ?.designation ??
+                                            //             "No Emp Designation",
+                                            //         profilePhoto:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .employeeDetails
+                                            //                 ?.profilePhoto ??
+                                            //             "No Image Url",
+                                            //         webUserId:
+                                            //             rawWebUserId
+                                            //                 ?.toString() ??
+                                            //             '0',
+                                            //         logo:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .adminUser
+                                            //                 .logo ??
+                                            //             "No Image Url",
+                                            //         checkin:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .employeeDetails
+                                            //                 .checkin ??
+                                            //             'no checkin',
+                                            //         id:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .adminUser
+                                            //                 .id
+                                            //                 ?.toString() ?? // Convert int to String if needed
+                                            //             "No ID",
+                                            //
+                                            //         access:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .employeeDetails
+                                            //                 .access ??
+                                            //             "",
+                                            //       );
+                                            //
+                                            //       AppLoggerHelper.logInfo(
+                                            //         '✅ Token saved to SecureStorage: ${provider.authEntity!.token}',
+                                            //       );
+                                            //     } catch (e) {
+                                            //       AppLoggerHelper.logError(
+                                            //         '⛔ Failed to save token: $e',
+                                            //       );
+                                            //     }
+                                            //
+                                            //     GoRouter.of(
+                                            //       context,
+                                            //     ).pushReplacementNamed(
+                                            //       AppRouteConstants
+                                            //           .employeeBottomNav,
+                                            //     );
+                                            //
+                                            //     //  Success Snack Bar
+                                            //     KSnackBar.success(
+                                            //       context,
+                                            //       "Login Successfull",
+                                            //     );
+                                            //   } else {
+                                            //     AppLoggerHelper.logError(
+                                            //       'Login Failed: ${provider.error}',
+                                            //     );
+                                            //     ScaffoldMessenger.of(
+                                            //       context,
+                                            //     ).showSnackBar(
+                                            //       SnackBar(
+                                            //         content: Text(
+                                            //           'Login Failed: ${provider.error}',
+                                            //         ),
+                                            //       ),
+                                            //     );
+                                            //   }
+                                            // },
+                                            onPressed: _handleLogin,
                                             height: isTablet
                                                 ? (isLandscape ? 30.h : 25.h)
                                                 : 22.h,
@@ -509,147 +620,148 @@ class _AuthLoginScreenState extends State<AuthLoginScreen> {
                                             fontSize: 10.sp,
                                             text: "Recruiter Login",
                                             backgroundColor: theme.primaryColor,
-                                            onPressed: () async {
-                                              if (!formKey.currentState!
-                                                  .validate()) {
-                                                return;
-                                              }
-
-                                              final provider = context
-                                                  .employeeAuthLoginProviderRead;
-
-                                              final role = "recruiter";
-                                              final emailId =
-                                                  recruiterController.text
-                                                      .trim();
-                                              final password =
-                                                  passwordController.text
-                                                      .trim();
-
-                                              await provider.login(
-                                                role: role,
-                                                emailId: emailId,
-                                                password: password,
-                                              );
-
-                                              if (provider.authEntity != null) {
-                                                await HiveStorageService()
-                                                    .setIsAuthLogged(true);
-
-                                                try {
-                                                  await SecureStorageService()
-                                                      .saveToken(
-                                                        token: provider
-                                                            .authEntity!
-                                                            .token,
-                                                      );
-                                                  final role = "recruiter";
-                                                  await HiveStorageService()
-                                                      .setUserRole(role);
-
-                                                  final rawWebUserId = provider
-                                                      .authEntity
-                                                      ?.data
-                                                      .employeeDetails
-                                                      ?.webUserId;
-
-                                                  AppLoggerHelper.logInfo(
-                                                    '🧪 webUserId (raw): $rawWebUserId',
-                                                  );
-
-                                                  await HiveStorageService.setEmployeeDetailsStatic(
-                                                    userName:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .name ??
-                                                        "No User Name",
-                                                    role: role,
-                                                    empId:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .empId ??
-                                                        "No EmpId",
-                                                    checkin:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .checkin ??
-                                                        "checkin",
-                                                    email: emailId,
-                                                    designation:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .employeeDetails
-                                                            ?.designation ??
-                                                        "No Emp Designation",
-                                                    profilePhoto:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .employeeDetails
-                                                            ?.profilePhoto ??
-                                                        "No Image Url",
-                                                    webUserId:
-                                                        rawWebUserId
-                                                            ?.toString() ??
-                                                        '0',
-                                                    logo:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .adminUser
-                                                            .logo ??
-                                                        "No Image Url",
-                                                    id:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .adminUser
-                                                            .id
-                                                            ?.toString() ?? // Convert int to String if needed
-                                                        "No ID",
-                                                    access:
-                                                        provider
-                                                            .authEntity
-                                                            ?.data
-                                                            .employeeDetails
-                                                            .access ??
-                                                        "",
-                                                  );
-
-                                                  AppLoggerHelper.logInfo(
-                                                    '✅ Token saved to SecureStorage: ${provider.authEntity!.token}',
-                                                  );
-                                                } catch (e) {
-                                                  AppLoggerHelper.logError(
-                                                    '⛔ Failed to save token: $e',
-                                                  );
-                                                }
-
-                                                GoRouter.of(
-                                                  context,
-                                                ).pushReplacementNamed(
-                                                  AppRouteConstants
-                                                      .homeRecruiter,
-                                                );
-                                              } else {
-                                                AppLoggerHelper.logError(
-                                                  'Login Failed: ${provider.error}',
-                                                );
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Login Failed: ${provider.error}',
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            },
+                                            // onPressed: () async {
+                                            //   if (!formKey.currentState!
+                                            //       .validate()) {
+                                            //     return;
+                                            //   }
+                                            //
+                                            //   final provider = context
+                                            //       .employeeAuthLoginProviderRead;
+                                            //
+                                            //   final role = "recruiter";
+                                            //   final emailId =
+                                            //       recruiterController.text
+                                            //           .trim();
+                                            //   final password =
+                                            //       passwordController.text
+                                            //           .trim();
+                                            //
+                                            //   await provider.login(
+                                            //     role: role,
+                                            //     emailId: emailId,
+                                            //     password: password,
+                                            //   );
+                                            //
+                                            //   if (provider.authEntity != null) {
+                                            //     await HiveStorageService()
+                                            //         .setIsAuthLogged(true);
+                                            //
+                                            //     try {
+                                            //       await SecureStorageService()
+                                            //           .saveToken(
+                                            //             token: provider
+                                            //                 .authEntity!
+                                            //                 .token,
+                                            //           );
+                                            //       final role = "recruiter";
+                                            //       await HiveStorageService()
+                                            //           .setUserRole(role);
+                                            //
+                                            //       final rawWebUserId = provider
+                                            //           .authEntity
+                                            //           ?.data
+                                            //           .employeeDetails
+                                            //           ?.webUserId;
+                                            //
+                                            //       AppLoggerHelper.logInfo(
+                                            //         '🧪 webUserId (raw): $rawWebUserId',
+                                            //       );
+                                            //
+                                            //       await HiveStorageService.setEmployeeDetailsStatic(
+                                            //         userName:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .name ??
+                                            //             "No User Name",
+                                            //         role: role,
+                                            //         empId:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .empId ??
+                                            //             "No EmpId",
+                                            //         checkin:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .checkin ??
+                                            //             "checkin",
+                                            //         email: emailId,
+                                            //         designation:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .employeeDetails
+                                            //                 ?.designation ??
+                                            //             "No Emp Designation",
+                                            //         profilePhoto:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .employeeDetails
+                                            //                 ?.profilePhoto ??
+                                            //             "No Image Url",
+                                            //         webUserId:
+                                            //             rawWebUserId
+                                            //                 ?.toString() ??
+                                            //             '0',
+                                            //         logo:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .adminUser
+                                            //                 .logo ??
+                                            //             "No Image Url",
+                                            //         id:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .adminUser
+                                            //                 .id
+                                            //                 ?.toString() ?? // Convert int to String if needed
+                                            //             "No ID",
+                                            //         access:
+                                            //             provider
+                                            //                 .authEntity
+                                            //                 ?.data
+                                            //                 .employeeDetails
+                                            //                 .access ??
+                                            //             "",
+                                            //       );
+                                            //
+                                            //       AppLoggerHelper.logInfo(
+                                            //         '✅ Token saved to SecureStorage: ${provider.authEntity!.token}',
+                                            //       );
+                                            //     } catch (e) {
+                                            //       AppLoggerHelper.logError(
+                                            //         '⛔ Failed to save token: $e',
+                                            //       );
+                                            //     }
+                                            //
+                                            //     GoRouter.of(
+                                            //       context,
+                                            //     ).pushReplacementNamed(
+                                            //       AppRouteConstants
+                                            //           .homeRecruiter,
+                                            //     );
+                                            //   } else {
+                                            //     AppLoggerHelper.logError(
+                                            //       'Login Failed: ${provider.error}',
+                                            //     );
+                                            //     ScaffoldMessenger.of(
+                                            //       context,
+                                            //     ).showSnackBar(
+                                            //       SnackBar(
+                                            //         content: Text(
+                                            //           'Login Failed: ${provider.error}',
+                                            //         ),
+                                            //       ),
+                                            //     );
+                                            //   }
+                                            // },
+                                            onPressed: _handleLogin,
                                             height: isTablet
                                                 ? (isLandscape ? 30.h : 25.h)
                                                 : 22.h,

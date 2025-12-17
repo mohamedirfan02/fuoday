@@ -14,6 +14,8 @@ class KAuthPasswordTextField extends StatefulWidget {
   final Color? labelColor;
   final double? labelFontSize;
   final FontWeight? labelFontWeight;
+  final TextInputAction? textInputAction;
+  final Function(String)? onFieldSubmitted;
 
   const KAuthPasswordTextField({
     super.key,
@@ -28,6 +30,8 @@ class KAuthPasswordTextField extends StatefulWidget {
     this.labelColor,
     this.labelFontSize,
     this.labelFontWeight,
+    this.textInputAction,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -149,6 +153,8 @@ class _KAuthPasswordTextFieldState extends State<KAuthPasswordTextField> {
                   : AppColors.checkOutColor,
             ),
           ),
+          textInputAction: widget.textInputAction,
+          onFieldSubmitted: widget.onFieldSubmitted,
         ),
       ],
     );

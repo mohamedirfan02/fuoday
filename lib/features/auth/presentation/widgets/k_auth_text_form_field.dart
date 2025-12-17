@@ -22,6 +22,10 @@ class KAuthTextFormField extends StatelessWidget {
   final ValueChanged<String>? onChanged; // 👈 add this
   final bool isRequiredStar;
 
+  // In KAuthTextFormField and KAuthPasswordTextField classes:
+  final TextInputAction? textInputAction;
+  final Function(String)? onFieldSubmitted;
+
   const KAuthTextFormField({
     super.key,
     this.hintText,
@@ -41,6 +45,8 @@ class KAuthTextFormField extends StatelessWidget {
     this.labelFontWeight,
     this.onChanged,
     this.isRequiredStar = false,
+    this.textInputAction,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -92,7 +98,8 @@ class KAuthTextFormField extends StatelessWidget {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hintText,
-            labelText: floatingLabel ? label : null, // floating label
+            labelText: floatingLabel ? label : null,
+            // floating label
             labelStyle: floatingLabel
                 ? GoogleFonts.sora(
                     fontSize: labelFontSize ?? 12.sp,
@@ -157,6 +164,8 @@ class KAuthTextFormField extends StatelessWidget {
                   : AppColors.checkOutColor,
             ),
           ),
+          textInputAction: textInputAction,
+          onFieldSubmitted: onFieldSubmitted,
         ),
       ],
     );
