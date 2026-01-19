@@ -13,6 +13,7 @@ import 'package:fuoday/core/providers/app_file_downloader_provider.dart';
 import 'package:fuoday/core/providers/app_file_picker_provider.dart';
 import 'package:fuoday/core/providers/app_internet_checker_provider.dart';
 import 'package:fuoday/core/router/app_router.dart';
+import 'package:fuoday/core/service/app_update_service.dart';
 import 'package:fuoday/core/service/hive_storage_service.dart';
 import 'package:fuoday/core/themes/app_colors.dart';
 import 'package:fuoday/core/themes/provider/theme_provider.dart';
@@ -155,8 +156,48 @@ Future<void> _initNotifications() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Check for updates when app starts
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdates();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Check for updates when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      _checkForUpdates();
+    }
+  }
+
+  Future<void> _checkForUpdates() async {
+    // Wait a bit for the UI to be ready
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Get the current context from navigator key
+    final context = navigatorKey.currentContext;
+    if (context != null && mounted) {
+      await AppUpdateService.checkForUpdate(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

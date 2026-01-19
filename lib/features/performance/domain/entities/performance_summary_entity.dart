@@ -1,13 +1,15 @@
 class PerformanceSummaryEntity {
   final List<Task>? tasks;
+  final List<Goal>? assignedByMe;  // Add this
+  final List<Goal>? assignedToMe;  // Add this
   final int? totalCompleted;
   final List<Task>? completedTasks;
   final int? totalPending;
   final List<Goal>? pendingGoals;
   final double? goalProgressPercentage;
   final List<Goal>? goalProgress;
-  final int? performanceScore;
-  final int? performanceRatingOutOf5;
+  final double? performanceScore;
+  final double? performanceRatingOutOf5;
   final int? totalCompletedProjects;
   final List<Project>? completedProjects;
   final int? totalUpcomingProjects;
@@ -16,6 +18,8 @@ class PerformanceSummaryEntity {
 
   const PerformanceSummaryEntity({
     this.tasks,
+    this.assignedByMe,  // Add this
+    this.assignedToMe,  // Add this
     this.totalCompleted,
     this.completedTasks,
     this.totalPending,

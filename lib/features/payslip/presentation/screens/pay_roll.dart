@@ -10,6 +10,7 @@ import 'package:fuoday/features/payslip/domain/entities/payroll_entity.dart';
 import 'package:fuoday/features/payslip/domain/usecase/get_payroll_usecase.dart';
 import 'package:fuoday/core/di/injection.dart';
 import 'package:fuoday/core/service/hive_storage_service.dart';
+import 'package:dio/dio.dart';
 
 class PayRoll extends StatefulWidget {
   const PayRoll({super.key});
@@ -23,6 +24,7 @@ class _PayRollState extends State<PayRoll> {
   PayrollEntity? payroll;
   bool isLoading = true;
   String? errorMessage;
+  bool isNoDataFound = false; // Track if it's a "no data" case
 
   @override
   void initState() {
@@ -39,7 +41,7 @@ class _PayRollState extends State<PayRoll> {
 
       if (webUserId == null) {
         setState(() {
-          errorMessage = 'User ID not found in Hive';
+          errorMessage = 'User ID not found';
           isLoading = false;
         });
         return;
@@ -52,10 +54,18 @@ class _PayRollState extends State<PayRoll> {
         isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        errorMessage = e.toString();
-        isLoading = false;
-      });
+      // Check if it's a DioException with 404 status
+      if (e is DioException && e.response?.statusCode == 404) {
+        setState(() {
+          isNoDataFound = true;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = e.toString();
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -63,12 +73,36 @@ class _PayRollState extends State<PayRoll> {
   Widget build(BuildContext context) {
     //App Theme Data
     final theme = Theme.of(context);
+
     // Show loading indicator
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Show error message
+    // Show no data message (for 404 or null payroll)
+    if (isNoDataFound || payroll == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 48.w,
+              color: theme.textTheme.bodyLarge?.color,
+            ),
+            KVerticalSpacer(height: 16.h),
+            KText(
+              text: "No payroll data found",
+              fontSize: 14.sp,
+              color: theme.textTheme.bodyLarge?.color,
+              fontWeight: FontWeight.w500,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Show error message (for actual errors)
     if (errorMessage != null) {
       return Center(
         child: Column(
@@ -77,38 +111,23 @@ class _PayRollState extends State<PayRoll> {
             Icon(
               Icons.error_outline,
               size: 48.w,
-              color: theme.textTheme.bodyLarge?.color, //AppColors.greyColor,
+              color: theme.textTheme.bodyLarge?.color,
             ),
             KVerticalSpacer(height: 16.h),
             KText(
-              text: errorMessage!,
+              text: "Something went wrong",
               fontSize: 14.sp,
-              color: theme.textTheme.bodyLarge?.color, //AppColors.greyColor,
+              color: theme.textTheme.bodyLarge?.color,
               textAlign: TextAlign.center,
               fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
-      );
-    }
-
-    // Show no data message
-    if (payroll == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 48.w,
-              color: theme.textTheme.bodyLarge?.color, //AppColors.greyColor,
-            ),
-            KVerticalSpacer(height: 16.h),
+            KVerticalSpacer(height: 8.h),
             KText(
-              text: "No payroll data found",
-              fontSize: 14.sp,
-              color: theme.textTheme.bodyLarge?.color, //AppColors.greyColor,
-              fontWeight: FontWeight.w500,
+              text: errorMessage!,
+              fontSize: 12.sp,
+              color: theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+              textAlign: TextAlign.center,
+              fontWeight: FontWeight.w400,
             ),
           ],
         ),
@@ -224,7 +243,7 @@ class _PayRollState extends State<PayRoll> {
             child: KText(
               text: "Coming soon",
               fontWeight: FontWeight.w500,
-              color: theme.textTheme.bodyLarge?.color, //AppColors.greyColor,
+              color: theme.textTheme.bodyLarge?.color,
               fontSize: 14.sp,
             ),
           ),

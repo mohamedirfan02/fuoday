@@ -316,6 +316,8 @@ import 'package:fuoday/features/performance/domain/entities/performance_summary_
 class PerformanceSummaryModel extends PerformanceSummaryEntity {
   const PerformanceSummaryModel({
     super.tasks,
+    super.assignedByMe,
+    super.assignedToMe,
     super.totalCompleted,
     super.completedTasks,
     super.totalPending,
@@ -331,10 +333,17 @@ class PerformanceSummaryModel extends PerformanceSummaryEntity {
     super.averageMonthlyAttendance,
   });
 
+
   factory PerformanceSummaryModel.fromJson(Map<String, dynamic> json) {
     return PerformanceSummaryModel(
       tasks: (json['tasks'] as List<dynamic>?)
           ?.map((e) => TaskModel.fromJson(e))
+          .toList(),
+      assignedByMe: (json['assigned_by_me'] as List<dynamic>?)
+          ?.map((e) => GoalModel.fromJson(e))
+          .toList(),
+      assignedToMe: (json['assigned_to_me'] as List<dynamic>?)
+          ?.map((e) => GoalModel.fromJson(e))
           .toList(),
       totalCompleted: json['total_completed'] is int
           ? json['total_completed']
@@ -353,12 +362,12 @@ class PerformanceSummaryModel extends PerformanceSummaryEntity {
       goalProgress: (json['goal_progress'] as List<dynamic>?)
           ?.map((e) => GoalModel.fromJson(e))
           .toList(),
-      performanceScore: json['performance_score'] is int
-          ? json['performance_score']
-          : int.tryParse(json['performance_score']?.toString() ?? ''),
-      performanceRatingOutOf5: json['performance_rating_out_of_5'] is int
-          ? json['performance_rating_out_of_5']
-          : int.tryParse(json['performance_rating_out_of_5']?.toString() ?? ''),
+      performanceScore: json['performance_score'] is num
+          ? (json['performance_score'] as num).toDouble()
+          : double.tryParse(json['performance_score']?.toString() ?? ''),
+      performanceRatingOutOf5: json['performance_rating_out_of_5'] is num
+          ? (json['performance_rating_out_of_5'] as num).toDouble()
+          : double.tryParse(json['performance_rating_out_of_5']?.toString() ?? ''),
       totalCompletedProjects: json['total_completed_projects'] is int
           ? json['total_completed_projects']
           : int.tryParse(json['total_completed_projects']?.toString() ?? ''),
@@ -375,7 +384,6 @@ class PerformanceSummaryModel extends PerformanceSummaryEntity {
           ?.toDouble(),
     );
   }
-
   Map<String, dynamic> toJson() => {
     'tasks': tasks?.map((e) => (e as TaskModel).toJson()).toList(),
     'total_completed': totalCompleted,

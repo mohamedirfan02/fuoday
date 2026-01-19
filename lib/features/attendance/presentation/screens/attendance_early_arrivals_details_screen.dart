@@ -195,7 +195,7 @@ class _AttendanceEarlyArrivalsDetailsScreenState
       ),
       bottomNavigationBar: Container(
         height: 60.h,
-        width: double.infinity,
+        width: 20.w,
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         margin: EdgeInsets.symmetric(vertical: 10.h),
         child: Center(

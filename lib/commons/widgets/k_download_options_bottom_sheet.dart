@@ -3,14 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fuoday/commons/widgets/k_vertical_spacer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fuoday/core/themes/app_colors.dart';
-
 class KDownloadOptionsBottomSheet extends StatelessWidget {
-  final VoidCallback onPdfTap;
+  final VoidCallback? onPdfTap; // optional
   final VoidCallback onExcelTap;
 
   const KDownloadOptionsBottomSheet({
     super.key,
-    required this.onPdfTap,
+    this.onPdfTap,
     required this.onExcelTap,
   });
 
@@ -44,14 +43,15 @@ class KDownloadOptionsBottomSheet extends StatelessWidget {
 
           KVerticalSpacer(height: 12.h),
 
-          // PDF
-          ListTile(
-            leading: const Icon(Icons.picture_as_pdf),
-            title: const Text("Download as PDF"),
-            onTap: onPdfTap,
-          ),
+          // PDF (only if provided)
+          if (onPdfTap != null)
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text("Download as PDF"),
+              onTap: onPdfTap,
+            ),
 
-          // Excel
+          // Excel (always visible)
           ListTile(
             leading: const Icon(Icons.table_chart),
             title: const Text("Download as Excel"),
@@ -62,3 +62,4 @@ class KDownloadOptionsBottomSheet extends StatelessWidget {
     );
   }
 }
+

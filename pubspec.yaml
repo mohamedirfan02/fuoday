@@ -161,6 +161,17 @@ dependencies:
   timezone: ^0.10.0
   fluttertoast: ^8.2.1
 
+  # For Google Play In-App Updates (Recommended)
+  in_app_update: ^4.2.3
+
+  # To get current app version
+  package_info_plus: ^8.0.0
+
+
+
+
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -362,83 +362,6 @@ class _HomeEmployeeFeedsState extends State<HomeEmployeeFeeds> {
           return ListView(
             padding: EdgeInsets.all(16),
             children: [
-              // Assigned Works
-              Container(
-                padding: EdgeInsets.only(bottom: 10.h),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.r),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: isDark
-                        ? [
-                            Color(0xFF2E323A),
-                            Color(0xFF3A3F47),
-                            Color(0xFF4A4F57),
-                          ]
-                        : [Color(0xFFD1D7E8), Color(0xFFEFF1F7), Colors.white],
-                  ),
-                  border: Border.all(
-                    color:
-                        theme.textTheme.headlineLarge?.color ??
-                        AppColors.titleColor,
-                    width: 0.2.w,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: 10.w,
-                        top: 10.h,
-                        bottom: 10.h,
-                      ),
-                      child: KText(
-                        text: 'Assigned Works By You',
-                        fontWeight: FontWeight.w600,
-                        color: theme
-                            .inputDecorationTheme
-                            .focusedBorder
-                            ?.borderSide
-                            .color,
-                        fontSize: 12.sp,
-                      ),
-                    ),
-                    assigned.isEmpty
-                        ? Center(child: Text("No assigned works"))
-                        : ListView.separated(
-                            shrinkWrap:
-                                true, // ✅ allow it to take only required space
-                            physics:
-                                NeverScrollableScrollPhysics(), // ✅ disable inner scroll
-                            itemCount: assigned.length,
-                            separatorBuilder: (_, __) =>
-                                KVerticalSpacer(height: 8.h),
-                            itemBuilder: (context, index) {
-                              final item = assigned[index];
-                              return KHomeEmployeeFeedsAssignedWorksTile(
-                                leadingVerticalDividerColor: theme.primaryColor,
-                                assignedWorksTitle: item.projectName,
-                                assignedWorkSubTitle: item.description,
-                                assignedWorkDeadLine: item.deadline,
-                                assignedBy: item.assignedBy,
-                                assignedTo: item.assignedTo,
-                                date: item.date,
-                                progress: item.progress,
-                                deadline: item.deadline,
-                                progressNote: item.progressNote,
-                                command: item.comment,
-                              );
-                            },
-                          ),
-                  ],
-                ),
-              ),
-
-              KVerticalSpacer(height: 14.h),
-
               // Pending Works
               Container(
                 padding: EdgeInsets.only(bottom: 10.h),
@@ -511,8 +434,82 @@ class _HomeEmployeeFeedsState extends State<HomeEmployeeFeeds> {
                   ],
                 ),
               ),
-
               KVerticalSpacer(height: 14.h),
+              // Assigned Works
+              Container(
+                padding: EdgeInsets.only(bottom: 10.h),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.r),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isDark
+                        ? [
+                      Color(0xFF2E323A),
+                      Color(0xFF3A3F47),
+                      Color(0xFF4A4F57),
+                    ]
+                        : [Color(0xFFD1D7E8), Color(0xFFEFF1F7), Colors.white],
+                  ),
+                  border: Border.all(
+                    color:
+                    theme.textTheme.headlineLarge?.color ??
+                        AppColors.titleColor,
+                    width: 0.2.w,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: 10.w,
+                        top: 10.h,
+                        bottom: 10.h,
+                      ),
+                      child: KText(
+                        text: 'Assigned Works By You',
+                        fontWeight: FontWeight.w600,
+                        color: theme
+                            .inputDecorationTheme
+                            .focusedBorder
+                            ?.borderSide
+                            .color,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                    assigned.isEmpty
+                        ? Center(child: Text("No assigned works"))
+                        : ListView.separated(
+                      shrinkWrap:
+                      true, // ✅ allow it to take only required space
+                      physics:
+                      NeverScrollableScrollPhysics(), // ✅ disable inner scroll
+                      itemCount: assigned.length,
+                      separatorBuilder: (_, __) =>
+                          KVerticalSpacer(height: 8.h),
+                      itemBuilder: (context, index) {
+                        final item = assigned[index];
+                        return KHomeEmployeeFeedsAssignedWorksTile(
+                          leadingVerticalDividerColor: theme.primaryColor,
+                          assignedWorksTitle: item.projectName,
+                          assignedWorkSubTitle: item.description,
+                          assignedWorkDeadLine: item.deadline,
+                          assignedBy: item.assignedBy,
+                          assignedTo: item.assignedTo,
+                          date: item.date,
+                          progress: item.progress,
+                          deadline: item.deadline,
+                          progressNote: item.progressNote,
+                          command: item.comment,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
             ],
           );
         },
